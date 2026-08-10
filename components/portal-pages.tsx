@@ -20,18 +20,19 @@ export function ExplorePage() {
 }
 
 const videoList = [
-  ["Ideias de negócios acessíveis", "Conteúdo demonstrativo", "Em breve", "violet"],
-  ["Como estudar melhor usando inteligência artificial", "Conteúdo demonstrativo", "Em breve", "cyan"],
-  ["Setup creator econômico", "Conteúdo demonstrativo", "Em breve", "pink"],
-  ["Como validar uma ideia", "Conteúdo demonstrativo", "Em breve", "orange"],
-  ["Primeiros passos em programação", "Conteúdo demonstrativo", "Em breve", "blue"],
-  ["Organize sua rotina", "Conteúdo demonstrativo", "Em breve", "green"],
+  ["Ideias de negócios acessíveis", "Conteúdo demonstrativo", "Em breve", "violet", "Negócios"],
+  ["Como estudar melhor usando inteligência artificial", "Conteúdo demonstrativo", "Em breve", "cyan", "Educação"],
+  ["Setup creator econômico", "Conteúdo demonstrativo", "Em breve", "pink", "Criadores"],
+  ["Como validar uma ideia", "Conteúdo demonstrativo", "Em breve", "orange", "Negócios"],
+  ["Primeiros passos em programação", "Conteúdo demonstrativo", "Em breve", "blue", "Tecnologia"],
+  ["Organize sua rotina", "Conteúdo demonstrativo", "Em breve", "green", "Educação"],
 ];
 
 export function VideosPage() {
   const [playing, setPlaying] = useState<string | null>(null);
   const [category, setCategory] = useState("Para você");
-  return <ModuleShell active="/videos" eyebrow="NEXUS PLAY • EM PREPARAÇÃO" title="Assista menos. Aprenda mais." description="O catálogo será publicado quando houver vídeos reais disponíveis."><div className="filter-row">{["Para você","Negócios","Tecnologia","Educação","Criadores"].map((item) => <button className={category === item ? "active" : ""} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div><div className="portal-video-grid">{videoList.map((video) => <article key={video[0]}><button className={`portal-video-cover ${video[3]}`} onClick={() => setPlaying(video[0])}><span>▶</span><em>{video[2]}</em></button><div><span className="avatar avatar-way">NB</span><p><strong>{video[0]}</strong><small>{video[1]} • ainda não publicado</small></p></div></article>)}</div>{playing && <div className="modal-backdrop" onMouseDown={() => setPlaying(null)}><section className="video-modal" onMouseDown={(event) => event.stopPropagation()}><button onClick={() => setPlaying(null)}>×</button><div><span>▶</span></div><h2>{playing}</h2><p>Este é somente um espaço demonstrativo. Nenhum vídeo ou número de audiência está sendo apresentado como real.</p></section></div>}</ModuleShell>;
+  const visibleVideos = category === "Para você" ? videoList : videoList.filter((video) => video[4] === category);
+  return <ModuleShell active="/videos" eyebrow="NEXUS PLAY • EM PREPARAÇÃO" title="Assista menos. Aprenda mais." description="O catálogo será publicado quando houver vídeos reais disponíveis."><div className="filter-row">{["Para você","Negócios","Tecnologia","Educação","Criadores"].map((item) => <button className={category === item ? "active" : ""} onClick={() => setCategory(item)} key={item}>{item}</button>)}</div><div className="portal-video-grid">{visibleVideos.map((video) => <article key={video[0]}><button className={`portal-video-cover ${video[3]}`} onClick={() => setPlaying(video[0])}><span>▶</span><em>{video[2]}</em></button><div><span className="avatar avatar-way">NB</span><p><strong>{video[0]}</strong><small>{video[1]} • ainda não publicado</small></p></div></article>)}</div>{playing && <div className="modal-backdrop" onMouseDown={() => setPlaying(null)}><section className="video-modal" onMouseDown={(event) => event.stopPropagation()}><button onClick={() => setPlaying(null)}>×</button><div><span>▶</span></div><h2>{playing}</h2><p>Este é somente um espaço demonstrativo. Nenhum vídeo ou número de audiência está sendo apresentado como real.</p></section></div>}</ModuleShell>;
 }
 
 const aiTools = ["Assistente de texto", "Resumidor", "Plano de negócio", "Descrição de produto", "Organizador de estudos", "Criador de publicações"];

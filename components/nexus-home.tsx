@@ -43,6 +43,7 @@ function Logo({ compact = false }: { compact?: boolean }) {
 export function NexusHome() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [query, setQuery] = useState("");
+  const [searchType, setSearchType] = useState("Todos");
   const [searchOpen, setSearchOpen] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -51,11 +52,12 @@ export function NexusHome() {
 
   const results = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("pt-BR");
-    if (!normalized) return searchData;
-    return searchData.filter((item) =>
-      `${item.type} ${item.title} ${item.detail}`.toLocaleLowerCase("pt-BR").includes(normalized),
-    );
-  }, [query]);
+    return searchData.filter((item) => {
+      const matchesType = searchType === "Todos" || item.type === searchType;
+      const matchesQuery = !normalized || `${item.type} ${item.title} ${item.detail}`.toLocaleLowerCase("pt-BR").includes(normalized);
+      return matchesType && matchesQuery;
+    });
+  }, [query, searchType]);
 
   function notify(message: string) {
     setToast(message);
@@ -70,7 +72,7 @@ export function NexusHome() {
   function submitNewsletter(event: FormEvent) {
     event.preventDefault();
     if (!email.includes("@")) return notify("Digite um e-mail válido");
-    notify("Você entrou na lista Nexus!");
+    notify("A newsletter ainda está em preparação");
     setEmail("");
   }
 
@@ -92,9 +94,9 @@ export function NexusHome() {
         </nav>
         <div className="upgrade-card">
           <span className="spark">✦</span>
-          <strong>Desbloqueie o Pro</strong>
-          <p>Mais IA, destaque e benefícios.</p>
-          <button onClick={() => { window.location.href = "/planos"; }}>Ver planos</button>
+          <strong>Planos em definição</strong>
+          <p>Conheça o que está sendo planejado.</p>
+          <button onClick={() => { window.location.href = "/planos"; }}>Ver planejamento</button>
         </div>
         <div className="sidebar-user">
           <span className="avatar avatar-way">MW</span>
@@ -113,7 +115,7 @@ export function NexusHome() {
             <span className="online"><i /> Versão beta</span>
             <button className="icon-button" aria-label="Alternar tema" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☼" : "☾"}</button>
             <button className="icon-button notification-button" aria-label="Ver notificações" onClick={() => setNoticeOpen(!noticeOpen)}>♢<i /></button>
-            <button className="primary-small" onClick={() => notify("O cadastro ainda está em preparação")}>Criar conta</button>
+            <a className="primary-small" href="/entrar">Criar conta</a>
           </div>
           {noticeOpen && (
             <div className="notification-popover">
@@ -158,7 +160,7 @@ export function NexusHome() {
           </section>
 
           <section className="section" id="explorar">
-            <div className="section-head"><div><span className="section-kicker">SEU NEXUS</span><h2>Descubra algo novo hoje</h2></div><button onClick={() => setSearchOpen(true)}>Ver tudo <span>→</span></button></div>
+            <div className="section-head"><div><span className="section-kicker">SEU NEXUS</span><h2>Descubra algo novo hoje</h2></div><button onClick={() => { window.location.href = "/explorar"; }}>Ver tudo <span>→</span></button></div>
             <div className="discovery-grid">
               <article className="feature-story">
                 <div className="story-art"><div className="planet"><i /><span>BR</span></div><div className="story-stars" /></div>
@@ -173,13 +175,13 @@ export function NexusHome() {
                 <div className="card-title"><div><span>↗</span><strong>Nexus Pulse</strong></div><small><i /> EM PREPARAÇÃO</small></div>
                 <p>Temas que poderão ser acompanhados quando houver dados reais.</p>
                 <ol>{plannedTopics.map((topic, index) => <li key={topic[0]}><em>0{index + 1}</em><p><strong>#{topic[0].replaceAll(" ", "")}</strong><small>{topic[1]}</small></p><span>—</span></li>)}</ol>
-                <button onClick={() => setSearchOpen(true)}>Explorar tendências <span>→</span></button>
+                <button onClick={() => { window.location.href = "/explorar"; }}>Explorar temas <span>→</span></button>
               </article>
             </div>
           </section>
 
           <section className="section" id="videos">
-            <div className="section-head"><div><span className="section-kicker red">EM PREPARAÇÃO</span><h2>Vídeos que valem seu tempo</h2></div><button onClick={() => notify("O catálogo será publicado quando houver vídeos reais")}>Ver todos <span>→</span></button></div>
+            <div className="section-head"><div><span className="section-kicker red">EM PREPARAÇÃO</span><h2>Vídeos que valem seu tempo</h2></div><button onClick={() => { window.location.href = "/videos"; }}>Ver todos <span>→</span></button></div>
             <div className="video-grid">
               {[
                 ["negócios", "Ideias de negócios acessíveis", "Conteúdo demonstrativo", "Em breve"],
@@ -196,9 +198,9 @@ export function NexusHome() {
 
           <section className="section" id="ia">
             <div className="ai-hub">
-              <div className="ai-intro"><span className="section-kicker cyan">NEXUS IA</span><h2>Uma ideia. Dez caminhos.<br /><em>Infinitas possibilidades.</em></h2><p>Ferramentas inteligentes para acelerar seus estudos, conteúdo e negócios.</p><button className="primary-button" onClick={() => notify("Central Nexus IA aberta em modo demonstração")}>Abrir central de IA <span>→</span></button></div>
+              <div className="ai-intro"><span className="section-kicker cyan">NEXUS IA</span><h2>Uma ideia. Dez caminhos.<br /><em>Infinitas possibilidades.</em></h2><p>Ferramentas inteligentes para acelerar seus estudos, conteúdo e negócios.</p><button className="primary-button" onClick={() => { window.location.href = "/ia"; }}>Abrir central de IA <span>→</span></button></div>
               <div className="ai-tools">
-                {[["✎", "Assistente de texto", "Escreva melhor e mais rápido"], ["↯", "Plano de negócio", "Da ideia à estratégia"], ["▤", "Organizador de estudos", "Plano sob medida"], ["◎", "Creator de conteúdo", "Posts que conectam"]].map((tool) => <button key={tool[1]} onClick={() => notify(`${tool[1]} aberto em modo demonstração`)}><span>{tool[0]}</span><p><strong>{tool[1]}</strong><small>{tool[2]}</small></p><i>→</i></button>)}
+                {[["✎", "Assistente de texto", "Escreva melhor e mais rápido"], ["↯", "Plano de negócio", "Da ideia à estratégia"], ["▤", "Organizador de estudos", "Plano sob medida"], ["◎", "Creator de conteúdo", "Posts que conectam"]].map((tool) => <button key={tool[1]} onClick={() => { window.location.href = "/ia"; }}><span>{tool[0]}</span><p><strong>{tool[1]}</strong><small>{tool[2]}</small></p><i>→</i></button>)}
               </div>
             </div>
           </section>
@@ -207,23 +209,23 @@ export function NexusHome() {
             <div className="section-head"><div><span className="section-kicker">UM ECOSSISTEMA COMPLETO</span><h2>Seu próximo passo começa aqui</h2></div></div>
             <div className="ecosystem-grid">
               {[
-                ["◎", "Comunidades", "Encontre sua turma", "Inscrições em breve", "purple"],
-                ["▣", "Marketplace", "Compre e venda fácil", "Vendedores em breve", "blue"],
-                ["▤", "Aprender", "Cursos que dão resultado", "Catálogo em preparação", "cyan"],
-                ["♢", "Jogos", "Desafie e conquiste", "Ranking após o lançamento", "pink"],
-              ].map((item) => <article id={item[1].toLocaleLowerCase("pt-BR")} key={item[1]}><span className={`eco-icon ${item[4]}`}>{item[0]}</span><p><strong>{item[1]}</strong><small>{item[2]}</small></p><em>{item[3]}</em><button onClick={() => notify(`${item[1]} disponível em modo demonstração`)}>→</button></article>)}
+                ["◎", "Comunidades", "Encontre sua turma", "Inscrições em breve", "purple", "/comunidades"],
+                ["▣", "Marketplace", "Compre e venda fácil", "Vendedores em breve", "blue", "/marketplace"],
+                ["▤", "Aprender", "Cursos que dão resultado", "Catálogo em preparação", "cyan", "/aprender"],
+                ["♢", "Jogos", "Desafie e conquiste", "Ranking após o lançamento", "pink", "/jogos"],
+              ].map((item) => <article id={item[1].toLocaleLowerCase("pt-BR")} key={item[1]}><span className={`eco-icon ${item[4]}`}>{item[0]}</span><p><strong>{item[1]}</strong><small>{item[2]}</small></p><em>{item[3]}</em><button aria-label={`Abrir ${item[1]}`} onClick={() => { window.location.href = item[5]; }}>→</button></article>)}
             </div>
           </section>
 
           <section className="community-cta">
             <div><span>✦</span><span>◎</span><span>↗</span></div>
             <p><span className="section-kicker cyan">O NEXUS É FEITO POR PESSOAS</span><strong>Seu espaço está sendo preparado.</strong><small>Contas e comunidades serão abertas quando as integrações reais estiverem prontas.</small></p>
-            <button className="primary-button" onClick={() => notify("Você está conhecendo a versão beta do Nexus")}>Conhecer a versão beta <span>→</span></button>
+            <button className="primary-button" onClick={() => { window.location.href = "/explorar"; }}>Ver recursos disponíveis <span>→</span></button>
           </section>
 
           <footer>
             <div><Logo /><p>{siteConfig.description}</p></div>
-            <form onSubmit={submitNewsletter}><label htmlFor="newsletter">Receba ideias que valem seu tempo.</label><div><input id="newsletter" value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="seu@email.com" /><button aria-label="Assinar newsletter">→</button></div></form>
+            <form onSubmit={submitNewsletter}><label htmlFor="newsletter">Newsletter em preparação.</label><div><input id="newsletter" value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="seu@email.com" /><button aria-label="Verificar newsletter">→</button></div></form>
           <nav aria-label="Links do rodapé"><a href="/explorar">Explorar</a><a href="/ia">Nexus IA</a><a href="/comunidades">Comunidades</a><a href="/termos">Termos</a><a href="/privacidade">Privacidade</a></nav>
             <small>© 2026 {siteConfig.name}. Feito para quem faz acontecer.</small>
           </footer>
@@ -236,8 +238,8 @@ export function NexusHome() {
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setSearchOpen(false)}>
           <section className="search-modal" role="dialog" aria-modal="true" aria-label="Busca global" onMouseDown={(event) => event.stopPropagation()}>
             <div className="search-input"><span>⌕</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="O que você quer encontrar?" /><kbd onClick={() => setSearchOpen(false)}>ESC</kbd></div>
-            <div className="search-filters"><button className="active">Todos</button><button>Vídeos</button><button>Pessoas</button><button>Produtos</button><button>Cursos</button></div>
-            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou negócio.</small></div>}</div>
+            <div className="search-filters">{["Todos", "Vídeo", "Comunidade", "Produto", "Curso", "IA"].map((type) => <button className={searchType === type ? "active" : ""} onClick={() => setSearchType(type)} key={type}>{type}</button>)}</div>
+            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou marketplace.</small></div>}</div>
           </section>
         </div>
       )}
