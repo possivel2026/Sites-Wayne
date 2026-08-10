@@ -28,7 +28,7 @@ export function ModuleShell({ active, eyebrow, title, description, children, act
         <header className="module-topbar">
           <a className="module-mobile-logo" href="/"><span className="brand-mark"><i /><b /></span><strong>NEXUS</strong></a>
           <button className="module-search" onClick={() => setSearch(true)}><span>⌕</span> Buscar em todo o Nexus <kbd>⌘ K</kbd></button>
-          <div><span className="online"><i /> 48 mil online</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><a className="primary-small" href="/entrar">Criar conta</a></div>
+          <div><span className="online"><i /> Versão beta</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><a className="primary-small" href="/entrar">Criar conta</a></div>
         </header>
         <div className="module-content">
           <section className="module-hero"><div><span className="section-kicker">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{action}</section>

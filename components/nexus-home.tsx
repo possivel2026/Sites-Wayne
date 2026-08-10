@@ -16,19 +16,19 @@ const navItems: NavItem[] = [
   { label: "Jogos", icon: "♢", id: "jogos", href: "/jogos" },
 ];
 
-const trends = [
-  ["Inteligência Artificial", "18,4 mil posts"],
-  ["Renda digital", "12,7 mil posts"],
-  ["ENEM 2026", "9,2 mil posts"],
-  ["Games BR", "7,8 mil posts"],
+const plannedTopics = [
+  ["Inteligência Artificial", "Tema em preparação"],
+  ["Renda digital", "Tema em preparação"],
+  ["Educação", "Tema em preparação"],
+  ["Games BR", "Tema em preparação"],
 ];
 
 const searchData = [
-  { type: "IA", title: "Gerador de plano de negócios", detail: "Ferramenta Nexus" },
-  { type: "Curso", title: "Primeira venda pela internet", detail: "38 min • Gratuito" },
-  { type: "Comunidade", title: "Criadores do Brasil", detail: "12,4 mil membros" },
-  { type: "Produto", title: "Kit creator compacto", detail: "R$ 189,90" },
-  { type: "Vídeo", title: "7 negócios para começar do zero", detail: "14 min" },
+  { type: "IA", title: "Ferramentas de produtividade", detail: "Disponível em modo beta" },
+  { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
+  { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
+  { type: "Produto", title: "Marketplace de criadores", detail: "Ainda sem vendedores cadastrados" },
+  { type: "Vídeo", title: "Nexus Play", detail: "Catálogo em preparação" },
 ];
 
 function Logo({ compact = false }: { compact?: boolean }) {
@@ -110,16 +110,16 @@ export function NexusHome() {
             <span aria-hidden="true">⌕</span><span>Busque vídeos, pessoas, produtos e mais...</span><kbd>⌘ K</kbd>
           </button>
           <div className="top-actions">
-            <span className="online"><i /> 48 mil online</span>
+            <span className="online"><i /> Versão beta</span>
             <button className="icon-button" aria-label="Alternar tema" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☼" : "☾"}</button>
             <button className="icon-button notification-button" aria-label="Ver notificações" onClick={() => setNoticeOpen(!noticeOpen)}>♢<i /></button>
-            <button className="primary-small" onClick={() => notify("Cadastro liberado em modo demonstração")}>Criar conta</button>
+            <button className="primary-small" onClick={() => notify("O cadastro ainda está em preparação")}>Criar conta</button>
           </div>
           {noticeOpen && (
             <div className="notification-popover">
               <div><strong>Notificações</strong><button onClick={() => setNoticeOpen(false)}>×</button></div>
               <article><span>✦</span><p><b>Bem-vindo ao Nexus</b><small>Seu novo universo digital começa aqui.</small></p></article>
-              <article><span>◎</span><p><b>Comunidade em alta</b><small>Criadores do Brasil ganhou 840 membros.</small></p></article>
+              <article><span>◎</span><p><b>Recursos em implantação</b><small>Dados reais serão exibidos após o lançamento.</small></p></article>
             </div>
           )}
         </header>
@@ -135,26 +135,26 @@ export function NexusHome() {
                 <a className="secondary-button" href="/ia"><span>✦</span> Conhecer Nexus IA</a>
               </div>
               <div className="social-proof">
-                <div className="face-stack"><span>AV</span><span>JS</span><span>MP</span><span>+8k</span></div>
-                <p><strong>8.420 novos membros</strong><small>entraram esta semana</small></p>
+                <div className="face-stack"><span>IA</span><span>ED</span><span>MK</span><span>+</span></div>
+                <p><strong>Plataforma em fase beta</strong><small>aguardando os primeiros dados reais</small></p>
               </div>
             </div>
             <div className="hero-visual" aria-label="Visão da atividade no Nexus Brasil">
               <div className="orb orb-one" /><div className="orb orb-two" />
               <div className="visual-grid" />
-              <div className="float-card creator-card"><span className="avatar avatar-lia">LA</span><p><small>Criadora em destaque</small><strong>Lia Alves <i>✓</i></strong><em>+12,8k seguidores</em></p><button onClick={() => notify("Agora você segue Lia Alves")}>Seguir</button></div>
+              <div className="float-card creator-card"><span className="avatar avatar-lia">NB</span><p><small>Perfis de criadores</small><strong>Em preparação</strong><em>Sem números inventados</em></p><button onClick={() => notify("Perfis reais serão exibidos após o cadastro")}>Em breve</button></div>
               <div className="float-card ai-card"><span>✦</span><p><small>Nexus IA</small><strong>Seu plano está pronto</strong></p><i>→</i></div>
-              <div className="float-card trend-card"><div><span>↗</span><small>Tendência agora</small></div><strong>#RendaDigital</strong><p>12,7 mil publicações</p><div className="mini-chart"><i /><i /><i /><i /><i /></div></div>
+              <div className="float-card trend-card"><div><span>↗</span><small>Tendências</small></div><strong>Dados reais em breve</strong><p>Exibidos após o lançamento</p><div className="mini-chart"><i /><i /><i /><i /><i /></div></div>
               <div className="center-sigil"><div><span>N</span></div><i /><i /><i /></div>
-              <div className="activity-pill"><i /> ATIVIDADE AO VIVO</div>
+              <div className="activity-pill"><i /> PAINEL DEMONSTRATIVO</div>
             </div>
           </section>
 
-          <section className="quick-stats" aria-label="Estatísticas da plataforma">
-            <article><span>◎</span><p><strong>+120 mil</strong><small>membros conectados</small></p></article>
-            <article><span>▶</span><p><strong>2,4 milhões</strong><small>conteúdos descobertos</small></p></article>
-            <article><span>✦</span><p><strong>390 mil</strong><small>criações com IA</small></p></article>
-            <article><span>↗</span><p><strong>R$ 8,7 mi</strong><small>gerados por criadores</small></p></article>
+          <section className="quick-stats" aria-label="Estado dos recursos da plataforma">
+            <article><span>◎</span><p><strong>Em breve</strong><small>membros reais</small></p></article>
+            <article><span>▶</span><p><strong>Preparando</strong><small>catálogo de conteúdo</small></p></article>
+            <article><span>✦</span><p><strong>Beta</strong><small>ferramentas de IA</small></p></article>
+            <article><span>↗</span><p><strong>Planejado</strong><small>recursos para criadores</small></p></article>
           </section>
 
           <section className="section" id="explorar">
@@ -166,29 +166,29 @@ export function NexusHome() {
                   <span className="tag tag-purple">CRIATIVIDADE</span>
                   <h3>O futuro já começou — e ele está sendo criado aqui.</h3>
                   <p>Conheça os brasileiros transformando ideias em negócios reais.</p>
-                  <div><span className="avatar avatar-lia">RA</span><p><strong>Rafael Andrade</strong><small>Há 18 min • 6 min de leitura</small></p><button className={saved.includes("story") ? "saved" : ""} aria-label="Salvar matéria" onClick={() => toggleSaved("story")}>{saved.includes("story") ? "✓" : "◇"}</button></div>
+                  <div><span className="avatar avatar-lia">NB</span><p><strong>Equipe Nexus Brasil</strong><small>Conteúdo editorial em preparação</small></p><button className={saved.includes("story") ? "saved" : ""} aria-label="Salvar matéria" onClick={() => toggleSaved("story")}>{saved.includes("story") ? "✓" : "◇"}</button></div>
                 </div>
               </article>
               <article className="pulse-card">
-                <div className="card-title"><div><span>↗</span><strong>Nexus Pulse</strong></div><small><i /> AO VIVO</small></div>
-                <p>O que está movimentando o Brasil agora.</p>
-                <ol>{trends.map((trend, index) => <li key={trend[0]}><em>0{index + 1}</em><p><strong>#{trend[0].replaceAll(" ", "")}</strong><small>{trend[1]}</small></p><span>{index === 0 ? "+42%" : index === 1 ? "+28%" : index === 2 ? "+19%" : "+12%"}</span></li>)}</ol>
+                <div className="card-title"><div><span>↗</span><strong>Nexus Pulse</strong></div><small><i /> EM PREPARAÇÃO</small></div>
+                <p>Temas que poderão ser acompanhados quando houver dados reais.</p>
+                <ol>{plannedTopics.map((topic, index) => <li key={topic[0]}><em>0{index + 1}</em><p><strong>#{topic[0].replaceAll(" ", "")}</strong><small>{topic[1]}</small></p><span>—</span></li>)}</ol>
                 <button onClick={() => setSearchOpen(true)}>Explorar tendências <span>→</span></button>
               </article>
             </div>
           </section>
 
           <section className="section" id="videos">
-            <div className="section-head"><div><span className="section-kicker red">EM ALTA</span><h2>Vídeos que valem seu tempo</h2></div><button onClick={() => notify("Feed de vídeos aberto em modo demo")}>Ver todos <span>→</span></button></div>
+            <div className="section-head"><div><span className="section-kicker red">EM PREPARAÇÃO</span><h2>Vídeos que valem seu tempo</h2></div><button onClick={() => notify("O catálogo será publicado quando houver vídeos reais")}>Ver todos <span>→</span></button></div>
             <div className="video-grid">
               {[
-                ["negócios", "7 negócios para começar com menos de R$ 100", "Caio Mendes", "14:22", "84 mil"],
-                ["estudo", "Como estudar melhor usando IA", "Nina Castro", "08:41", "51 mil"],
-                ["creator", "Meu setup creator barato e completo", "Leo Tech", "11:08", "37 mil"],
+                ["negócios", "Ideias de negócios acessíveis", "Conteúdo demonstrativo", "Em breve"],
+                ["estudo", "Como estudar melhor usando IA", "Conteúdo demonstrativo", "Em breve"],
+                ["creator", "Setup creator econômico", "Conteúdo demonstrativo", "Em breve"],
               ].map((video, index) => (
                 <article className="video-card" key={video[0]}>
-                  <button className={`video-thumb thumb-${index + 1}`} aria-label={`Reproduzir ${video[1]}`} onClick={() => notify(`Reproduzindo: ${video[1]}`)}><span className="play">▶</span><em>{video[3]}</em><i>{index === 0 ? "RENDA" : index === 1 ? "ESTUDOS" : "TECH"}</i></button>
-                  <div className="video-info"><span className={`avatar avatar-${index + 1}`}>{video[2].split(" ").map((v) => v[0]).join("")}</span><p><strong>{video[1]}</strong><small>{video[2]} · {video[4]} views</small></p><button aria-label="Mais opções">•••</button></div>
+                  <button className={`video-thumb thumb-${index + 1}`} aria-label={`Prévia de ${video[1]}`} onClick={() => notify("Este vídeo ainda não foi publicado")}><span className="play">▶</span><em>{video[3]}</em><i>{index === 0 ? "RENDA" : index === 1 ? "ESTUDOS" : "TECH"}</i></button>
+                  <div className="video-info"><span className={`avatar avatar-${index + 1}`}>NB</span><p><strong>{video[1]}</strong><small>{video[2]} · ainda não publicado</small></p><button aria-label="Mais opções">•••</button></div>
                 </article>
               ))}
             </div>
@@ -207,18 +207,18 @@ export function NexusHome() {
             <div className="section-head"><div><span className="section-kicker">UM ECOSSISTEMA COMPLETO</span><h2>Seu próximo passo começa aqui</h2></div></div>
             <div className="ecosystem-grid">
               {[
-                ["◎", "Comunidades", "Encontre sua turma", "12 mil grupos", "purple"],
-                ["▣", "Marketplace", "Compre e venda fácil", "+48 mil ofertas", "blue"],
-                ["▤", "Aprender", "Cursos que dão resultado", "1.200 aulas", "cyan"],
-                ["♢", "Jogos", "Desafie e conquiste", "Ranking ao vivo", "pink"],
+                ["◎", "Comunidades", "Encontre sua turma", "Inscrições em breve", "purple"],
+                ["▣", "Marketplace", "Compre e venda fácil", "Vendedores em breve", "blue"],
+                ["▤", "Aprender", "Cursos que dão resultado", "Catálogo em preparação", "cyan"],
+                ["♢", "Jogos", "Desafie e conquiste", "Ranking após o lançamento", "pink"],
               ].map((item) => <article id={item[1].toLocaleLowerCase("pt-BR")} key={item[1]}><span className={`eco-icon ${item[4]}`}>{item[0]}</span><p><strong>{item[1]}</strong><small>{item[2]}</small></p><em>{item[3]}</em><button onClick={() => notify(`${item[1]} disponível em modo demonstração`)}>→</button></article>)}
             </div>
           </section>
 
           <section className="community-cta">
             <div><span>✦</span><span>◎</span><span>↗</span></div>
-            <p><span className="section-kicker cyan">O NEXUS É FEITO POR PESSOAS</span><strong>Seu espaço já está pronto.<br />Só falta você.</strong><small>Crie seu perfil, encontre sua comunidade e comece a construir.</small></p>
-            <button className="primary-button" onClick={() => notify("Criação de conta iniciada em modo demonstração")}>Criar minha conta grátis <span>→</span></button>
+            <p><span className="section-kicker cyan">O NEXUS É FEITO POR PESSOAS</span><strong>Seu espaço está sendo preparado.</strong><small>Contas e comunidades serão abertas quando as integrações reais estiverem prontas.</small></p>
+            <button className="primary-button" onClick={() => notify("Você está conhecendo a versão beta do Nexus")}>Conhecer a versão beta <span>→</span></button>
           </section>
 
           <footer>
