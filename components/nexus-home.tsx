@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { siteConfig } from "@/config/site";
+import { HeaderAuth, SidebarAuth } from "@/components/auth-controls";
 
 type NavItem = { label: string; icon: string; id: string; href: string };
 
@@ -98,11 +99,7 @@ export function NexusHome() {
           <p>Conheça o que está sendo planejado.</p>
           <button onClick={() => { window.location.href = "/planos"; }}>Ver planejamento</button>
         </div>
-        <div className="sidebar-user">
-          <span className="avatar avatar-way">MW</span>
-          <span><strong>Visitante</strong><small>Conta gratuita</small></span>
-          <button aria-label="Abrir menu do perfil" onClick={() => notify("Entre para personalizar seu Nexus")}>•••</button>
-        </div>
+        <SidebarAuth variant="home" />
       </aside>
 
       <main className="main-shell">
@@ -115,7 +112,7 @@ export function NexusHome() {
             <span className="online"><i /> Versão beta</span>
             <button className="icon-button" aria-label="Alternar tema" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? "☼" : "☾"}</button>
             <button className="icon-button notification-button" aria-label="Ver notificações" onClick={() => setNoticeOpen(!noticeOpen)}>♢<i /></button>
-            <a className="primary-small" href="/entrar">Criar conta</a>
+            <HeaderAuth />
           </div>
           {noticeOpen && (
             <div className="notification-popover">
@@ -239,7 +236,7 @@ export function NexusHome() {
           <section className="search-modal" role="dialog" aria-modal="true" aria-label="Busca global" onMouseDown={(event) => event.stopPropagation()}>
             <div className="search-input"><span>⌕</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="O que você quer encontrar?" /><kbd onClick={() => setSearchOpen(false)}>ESC</kbd></div>
             <div className="search-filters">{["Todos", "Vídeo", "Comunidade", "Produto", "Curso", "IA"].map((type) => <button className={searchType === type ? "active" : ""} onClick={() => setSearchType(type)} key={type}>{type}</button>)}</div>
-            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou marketplace.</small></div>}</div>
+            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou negócio.</small></div>}</div>
           </section>
         </div>
       )}
