@@ -3,6 +3,7 @@
 
 import { ReactNode, useState } from "react";
 import { portalNavigation, siteConfig } from "@/config/site";
+import { HeaderAuth, SidebarAuth } from "@/components/auth-controls";
 
 export function ModuleShell({ active, eyebrow, title, description, children, action }: {
   active: string;
@@ -24,13 +25,13 @@ export function ModuleShell({ active, eyebrow, title, description, children, act
           {portalNavigation.map((item) => <a className={active === item.href ? "active" : ""} href={item.href} key={item.href}><span>{item.icon}</span>{item.label}{item.href === "/ia" && <em>Beta</em>}</a>)}
         </nav>
         <a className="module-plan" href="/planos"><span>✦</span><p><strong>Planos Nexus</strong><small>Preços e recursos em definição.</small></p><i>→</i></a>
-        <div className="module-profile"><span className="avatar avatar-way">MW</span><p><strong>Visitante</strong><small>Modo demonstração</small></p><a href="/entrar">Entrar</a></div>
+        <SidebarAuth variant="module" />
       </aside>
       <main className="module-main">
         <header className="module-topbar">
           <a className="module-mobile-logo" href="/"><span className="brand-mark"><i /><b /></span><strong>NEXUS</strong></a>
           <button className="module-search" onClick={() => setSearch(true)}><span>⌕</span> Buscar em todo o Nexus <kbd>⌘ K</kbd></button>
-          <div><span className="online"><i /> Versão beta</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><a className="primary-small" href="/entrar">Criar conta</a></div>
+          <div><span className="online"><i /> Versão beta</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><HeaderAuth /></div>
         </header>
         <div className="module-content">
           <section className="module-hero"><div><span className="section-kicker">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{action}</section>
