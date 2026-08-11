@@ -14,6 +14,7 @@ export const portalNavigation = [
   { label: "Nexus IA", icon: "✦", href: "/ia" },
   { label: "Comunidades", icon: "◎", href: "/comunidades" },
   { label: "Marketplace", icon: "▣", href: "/marketplace" },
+  { label: "Sites Wayne", icon: "▧", href: "/sites" },
   { label: "Aprender", icon: "▤", href: "/aprender" },
   { label: "Jogos", icon: "♢", href: "/jogos" },
 ] as const;
