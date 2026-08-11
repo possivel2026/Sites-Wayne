@@ -29,7 +29,7 @@ const searchData = [
   { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
   { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
   { type: "Produto", title: "Marketplace de criadores", detail: "Ainda sem vendedores cadastrados" },
-  { type: "Site", title: "Barbearia Wayne", detail: "Site publicado no ecossistema Sites Wayne" },
+  { type: "Site", title: "Barbearia Wayne", detail: "Site publicado no ecossistema Sites Wayne", href: "/barbearia-wayne" },
   { type: "Vídeo", title: "Nexus Play", detail: "Catálogo em preparação" },
 ];
 
@@ -260,7 +260,7 @@ export function NexusHome() {
           <section className="search-modal" role="dialog" aria-modal="true" aria-label="Busca global" onMouseDown={(event) => event.stopPropagation()}>
             <div className="search-input"><span>⌕</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="O que você quer encontrar?" /><kbd onClick={() => setSearchOpen(false)}>ESC</kbd></div>
             <div className="search-filters">{["Todos", "Vídeo", "Comunidade", "Produto", "Curso", "Site", "IA"].map((type) => <button className={searchType === type ? "active" : ""} onClick={() => setSearchType(type)} key={type}>{type}</button>)}</div>
-            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou marketplace.</small></div>}</div>
+            <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); if (item.href) window.location.href = item.href; else notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou marketplace.</small></div>}</div>
           </section>
         </div>
       )}
