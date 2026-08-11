@@ -12,6 +12,7 @@ const navItems: NavItem[] = [
   { label: "Nexus IA", icon: "✦", id: "ia", href: "/ia" },
   { label: "Comunidades", icon: "◎", id: "comunidades", href: "/comunidades" },
   { label: "Marketplace", icon: "▣", id: "marketplace", href: "/marketplace" },
+  { label: "Sites Wayne", icon: "▧", id: "sites", href: "/sites" },
   { label: "Aprender", icon: "▤", id: "aprender", href: "/aprender" },
   { label: "Jogos", icon: "♢", id: "jogos", href: "/jogos" },
 ];
@@ -28,6 +29,7 @@ const searchData = [
   { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
   { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
   { type: "Produto", title: "Marketplace de criadores", detail: "Ainda sem vendedores cadastrados" },
+  { type: "Site", title: "Barbearia Wayne", detail: "Site publicado no ecossistema Sites Wayne" },
   { type: "Vídeo", title: "Nexus Play", detail: "Catálogo em preparação" },
 ];
 
@@ -217,6 +219,25 @@ export function NexusHome() {
             </div>
           </section>
 
+          <section className="section nexus-sites-feature" id="sites-wayne">
+            <div className="section-head">
+              <div><span className="section-kicker cyan">SITES WAYNE</span><h2>Projetos reais, prontos para acessar</h2></div>
+              <a className="sites-all-link" href="/sites">Ver todos <span>→</span></a>
+            </div>
+            <article className="featured-site-card">
+              <div className="featured-site-visual" aria-hidden="true">
+                <span>BW</span><i /><b />
+              </div>
+              <div className="featured-site-copy">
+                <span className="live-site-badge"><i /> SITE PUBLICADO</span>
+                <h3>Barbearia Wayne</h3>
+                <p>Uma experiência premium em preto e dourado, com serviços, diferenciais e preparação de agendamento em uma página responsiva.</p>
+                <div><span>Design premium</span><span>Responsivo</span><span>Agendamento</span></div>
+                <a className="primary-button" href="/barbearia-wayne">Acessar Barbearia Wayne <span>↗</span></a>
+              </div>
+            </article>
+          </section>
+
           <section className="community-cta">
             <div><span>✦</span><span>◎</span><span>↗</span></div>
             <p><span className="section-kicker cyan">O NEXUS É FEITO POR PESSOAS</span><strong>Seu espaço está sendo preparado.</strong><small>Contas e comunidades serão abertas quando as integrações reais estiverem prontas.</small></p>
@@ -238,7 +259,7 @@ export function NexusHome() {
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setSearchOpen(false)}>
           <section className="search-modal" role="dialog" aria-modal="true" aria-label="Busca global" onMouseDown={(event) => event.stopPropagation()}>
             <div className="search-input"><span>⌕</span><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="O que você quer encontrar?" /><kbd onClick={() => setSearchOpen(false)}>ESC</kbd></div>
-            <div className="search-filters">{["Todos", "Vídeo", "Comunidade", "Produto", "Curso", "IA"].map((type) => <button className={searchType === type ? "active" : ""} onClick={() => setSearchType(type)} key={type}>{type}</button>)}</div>
+            <div className="search-filters">{["Todos", "Vídeo", "Comunidade", "Produto", "Curso", "Site", "IA"].map((type) => <button className={searchType === type ? "active" : ""} onClick={() => setSearchType(type)} key={type}>{type}</button>)}</div>
             <div className="search-results"><p>{query ? `Resultados para “${query}”` : "Descobertas para você"}</p>{results.length ? results.map((item) => <button key={item.title} onClick={() => { setSearchOpen(false); notify(`${item.title} aberto em modo demo`); }}><span>{item.type.slice(0, 1)}</span><p><strong>{item.title}</strong><small>{item.type} · {item.detail}</small></p><i>↗</i></button>) : <div className="empty-search"><span>◇</span><strong>Nada encontrado</strong><small>Tente palavras como IA, curso ou marketplace.</small></div>}</div>
           </section>
         </div>
