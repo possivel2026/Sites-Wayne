@@ -5,6 +5,7 @@ Mega portal digital brasileiro construído com Next.js, TypeScript e Tailwind CS
 ## O que já funciona
 
 - homepage premium e totalmente responsiva;
+- área comercial Sites Wayne com pacotes, recorrência e briefing local;
 - busca global, tema claro/escuro e notificações;
 - páginas de explorar, vídeos, Nexus IA, comunidades, marketplace, cursos, jogos e planos;
 - IA em modo demonstração, carrinho, progresso de cursos, comunidades e quiz;
@@ -14,6 +15,8 @@ Mega portal digital brasileiro construído com Next.js, TypeScript e Tailwind CS
 - layout estabilizado, sem animações que causem tremor no celular.
 
 Autenticação, Realtime, uploads, pagamentos e analytics permanecem em modo demonstração enquanto as respectivas credenciais não forem configuradas.
+
+O botão direto para WhatsApp da área de serviços é ativado com `NEXT_PUBLIC_WHATSAPP_NUMBER`, usando apenas números e código do país (ex.: `5511999999999`). Sem essa variável, o visitante consegue copiar o briefing sem enviar dados ao servidor.
 
 ## Rodar no computador
 

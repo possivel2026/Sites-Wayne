@@ -7,6 +7,7 @@ type NavItem = { label: string; icon: string; id: string; href: string };
 
 const navItems: NavItem[] = [
   { label: "Início", icon: "⌂", id: "inicio", href: "/" },
+  { label: "Contratar", icon: "↗", id: "servicos", href: "/servicos" },
   { label: "Explorar", icon: "◇", id: "explorar", href: "/explorar" },
   { label: "Vídeos", icon: "▶", id: "videos", href: "/videos" },
   { label: "Nexus IA", icon: "✦", id: "ia", href: "/ia" },
@@ -25,6 +26,7 @@ const plannedTopics = [
 ];
 
 const searchData = [
+  { type: "Site", title: "Contratar Sites Wayne", detail: "Pacotes comerciais e diagnóstico inicial", href: "/servicos" },
   { type: "IA", title: "Ferramentas de produtividade", detail: "Disponível em modo beta" },
   { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
   { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
@@ -84,13 +86,13 @@ export function NexusHome() {
         <Logo />
         <nav aria-label="Navegação principal">
           <p className="nav-label">Descobrir</p>
-          {navItems.slice(0, 5).map((item, index) => (
+          {navItems.slice(0, 6).map((item, index) => (
             <a className={index === 0 ? "active" : ""} href={item.href} key={item.id}>
               <span>{item.icon}</span>{item.label}{item.id === "ia" && <em>Beta</em>}
             </a>
           ))}
           <p className="nav-label nav-label-spaced">Fazer</p>
-          {navItems.slice(5).map((item) => (
+          {navItems.slice(6).map((item) => (
             <a href={item.href} key={item.id}><span>{item.icon}</span>{item.label}</a>
           ))}
         </nav>
@@ -234,6 +236,7 @@ export function NexusHome() {
                 <p>Uma experiência premium em preto e dourado, com serviços, diferenciais e preparação de agendamento em uma página responsiva.</p>
                 <div><span>Design premium</span><span>Responsivo</span><span>Agendamento</span></div>
                 <a className="primary-button" href="/barbearia-wayne">Acessar Barbearia Wayne <span>↗</span></a>
+                <a className="sites-commercial-link" href="/servicos">Quero um site para meu negócio <span>→</span></a>
               </div>
             </article>
           </section>
