@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const routes = ["", "/explorar", "/videos", "/ia", "/comunidades", "/marketplace", "/aprender", "/jogos", "/planos", "/termos", "/privacidade"];
+const routes = ["", "/servicos", "/explorar", "/videos", "/ia", "/comunidades", "/marketplace", "/sites", "/barbearia-wayne", "/aprender", "/jogos", "/planos", "/termos", "/privacidade"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.NEXT_PUBLIC_APP_URL || "https://nexus-brasil.mhxzwayyn.chatgpt.site";

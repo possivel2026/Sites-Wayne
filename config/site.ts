@@ -4,11 +4,11 @@ export const siteConfig = {
   description:
     "O ecossistema digital brasileiro para descobrir, criar, aprender, vender e crescer.",
   slogan: "Tudo que move você, conectado.",
-  supportEmail: "contato@nexusbrasil.app",
 } as const;
 
 export const portalNavigation = [
   { label: "Início", icon: "⌂", href: "/" },
+  { label: "Contratar", icon: "↗", href: "/servicos" },
   { label: "Explorar", icon: "◇", href: "/explorar" },
   { label: "Vídeos", icon: "▶", href: "/videos" },
   { label: "Nexus IA", icon: "✦", href: "/ia" },

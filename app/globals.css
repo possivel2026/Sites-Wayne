@@ -137,6 +137,7 @@ footer{border-top:1px solid var(--line);padding:42px clamp(38px,5.3vw,82px) 25px
 .featured-site-copy h3{font-size:28px;letter-spacing:-.035em;margin:14px 0 8px}.featured-site-copy > p{max-width:600px;color:var(--muted);font-size:10px;line-height:1.75;margin:0}
 .featured-site-copy > div{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0}.featured-site-copy > div span{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);border-radius:20px;padding:6px 9px;font-size:6px}
 .featured-site-copy .primary-button{margin-top:2px}
+.sites-commercial-link{color:#a18df7;font-size:8px;margin-top:14px}.sites-commercial-link span{margin-left:7px}
 
 .sites-portal-grid{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:18px}
 .site-portal-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;overflow:hidden}
