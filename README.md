@@ -16,7 +16,7 @@ Mega portal digital brasileiro construído com Next.js, TypeScript e Tailwind CS
 
 Autenticação, Realtime, uploads, pagamentos e analytics permanecem em modo demonstração enquanto as respectivas credenciais não forem configuradas.
 
-O botão direto para WhatsApp da área de serviços é ativado com `NEXT_PUBLIC_WHATSAPP_NUMBER`, usando apenas números e código do país (ex.: `5511999999999`). Sem essa variável, o visitante consegue copiar o briefing sem enviar dados ao servidor.
+O botão direto da área de serviços usa o contato comercial público do Sites Wayne. A variável `NEXT_PUBLIC_WHATSAPP_NUMBER`, somente com números e código do país, pode substituir esse contato em outro ambiente. O diagnóstico gera código do lead, referência de investimento, prazo, origem e mensagem pronta sem armazenar dados no servidor.
 
 ## Rodar no computador
 

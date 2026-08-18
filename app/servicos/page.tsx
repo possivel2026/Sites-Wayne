@@ -28,22 +28,54 @@ const packages = [
   },
 ] as const;
 
-const whatsAppNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") || "";
+type PackageName = (typeof packages)[number]["name"] | "Preciso de orientação";
+
+const publicWhatsAppNumber = "5537999584722";
+const whatsAppNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/\D/g, "") || publicWhatsAppNumber;
+const packagePrices: Record<PackageName, string> = {
+  Essencial: "a partir de R$ 297",
+  Profissional: "a partir de R$ 697",
+  Growth: "a partir de R$ 1.497",
+  "Preciso de orientação": "definido após o diagnóstico",
+};
+
+function createLeadCode() {
+  return `WAYNE-${Date.now().toString(36).slice(-6).toUpperCase()}`;
+}
 
 export default function ServicesPage() {
   const [summary, setSummary] = useState("");
   const [copied, setCopied] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<PackageName>("Profissional");
+
+  const instantContact = `https://wa.me/${whatsAppNumber}?text=${encodeURIComponent(
+    "Olá! Vim pelo Sites Wayne e quero entender qual site faz mais sentido para meu negócio.",
+  )}`;
+
+  function choosePackage(packageName: PackageName) {
+    setSelectedPackage(packageName);
+    setSummary("");
+    setCopied(false);
+  }
 
   function prepareBriefing(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
+    const packageName = String(data.get("package")) as PackageName;
+    const maintenance = data.get("maintenance") === "on" ? "Sim" : "Ainda não";
+    const source = new URLSearchParams(window.location.search).get("utm_source") || "acesso direto";
     const message = [
       "Pedido de diagnóstico — Sites Wayne",
+      `Código: ${createLeadCode()}`,
       `Nome: ${data.get("name")}`,
       `Negócio: ${data.get("business")}`,
       `Objetivo: ${data.get("goal")}`,
-      `Pacote de interesse: ${data.get("package")}`,
+      `Pacote de interesse: ${packageName}`,
+      `Investimento de referência: ${packagePrices[packageName]}`,
+      `Prazo desejado: ${data.get("timeline")}`,
+      `Interesse em manutenção: ${maintenance}`,
       `Contato: ${data.get("contact")}`,
+      `Origem: ${source}`,
       "",
       "Quero confirmar escopo, prazo e valor antes de contratar.",
     ].join("\n");
@@ -66,7 +98,7 @@ export default function ServicesPage() {
       eyebrow="SITES WAYNE • SERVIÇOS"
       title="Seu negócio merece um site que gere contatos."
       description="Sites rápidos, responsivos e construídos para transformar interesse em conversa comercial — sem números inventados e sem promessas de resultado garantido."
-      action={<a className="primary-button" href="#diagnostico">Solicitar diagnóstico <span>→</span></a>}
+      action={<a className="primary-button" href={instantContact} target="_blank" rel="noreferrer">Falar no WhatsApp <span>→</span></a>}
     >
       <section className={styles.proof} aria-label="Projeto em destaque">
         <div>
@@ -92,7 +124,7 @@ export default function ServicesPage() {
               <h3><small>a partir de</small>{item.price}</h3>
               <p>{item.description}</p>
               <ul>{item.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>
-              <a href="#diagnostico" onClick={() => setSummary("")}>Quero este pacote <b>→</b></a>
+              <a href="#diagnostico" onClick={() => choosePackage(item.name)}>Quero este pacote <b>→</b></a>
             </article>
           ))}
         </div>
@@ -124,15 +156,20 @@ export default function ServicesPage() {
           <label>Seu nome<input name="name" autoComplete="name" required /></label>
           <label>Tipo de negócio<input name="business" placeholder="Ex.: barbearia, loja, assistência" required /></label>
           <label>Principal objetivo<select name="goal" defaultValue="" required><option value="" disabled>Selecione</option><option>Receber pedidos no WhatsApp</option><option>Apresentar serviços</option><option>Captar orçamentos</option><option>Vender um produto digital</option></select></label>
-          <label>Pacote de interesse<select name="package" defaultValue="Profissional"><option>Essencial</option><option>Profissional</option><option>Growth</option><option>Preciso de orientação</option></select></label>
+          <label>Pacote de interesse<select name="package" value={selectedPackage} onChange={(event) => choosePackage(event.target.value as PackageName)}><option>Essencial</option><option>Profissional</option><option>Growth</option><option>Preciso de orientação</option></select></label>
+          <label>Prazo desejado<select name="timeline" defaultValue="Em até 30 dias"><option>O quanto antes</option><option>Em até 15 dias</option><option>Em até 30 dias</option><option>Estou pesquisando</option></select></label>
           <label className={styles.full}>Seu WhatsApp ou e-mail<input name="contact" autoComplete="tel" required /></label>
+          <label className={`${styles.full} ${styles.check}`}><input name="maintenance" type="checkbox" /> Quero conhecer também os planos de manutenção mensal.</label>
           <button className={styles.full} type="submit">PREPARAR PEDIDO</button>
         </form>
         {summary && (
           <div className={styles.result} role="status">
             <pre>{summary}</pre>
-            <button type="button" onClick={continueRequest}>{whatsAppNumber ? "CONTINUAR NO WHATSAPP" : copied ? "PEDIDO COPIADO" : "COPIAR PEDIDO"}</button>
-            {!whatsAppNumber && <small>O canal direto será ativado após a configuração do número comercial.</small>}
+            <div className={styles.resultActions}>
+              <button type="button" onClick={continueRequest}>CONTINUAR NO WHATSAPP</button>
+              <button className={styles.copyButton} type="button" onClick={async () => { await navigator.clipboard.writeText(summary); setCopied(true); }}>{copied ? "PEDIDO COPIADO" : "COPIAR PEDIDO"}</button>
+            </div>
+            <small>Você revisa a mensagem antes de enviá-la. O site não armazena seus dados.</small>
           </div>
         )}
       </section>
