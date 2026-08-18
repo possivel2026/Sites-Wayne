@@ -83,12 +83,12 @@ begin
   if p_items is null or jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) < 1 or jsonb_array_length(p_items) > 20 then raise exception 'invalid_items'; end if;
   if p_commission_percent is null or p_commission_percent < 0 or p_commission_percent > 30 then raise exception 'invalid_commission'; end if;
 
-  for v_item in select value from jsonb_array_elements(p_items) loop
+  for v_item in select value from jsonb_array_elements(p_items) order by value->>'product_id' loop
     v_product_id := (v_item->>'product_id')::uuid;
     v_quantity := (v_item->>'quantity')::integer;
     if v_quantity < 1 or v_quantity > 10 or v_product_id = any(v_seen) then raise exception 'invalid_item'; end if;
     v_seen := array_append(v_seen, v_product_id);
-    select * into strict v_product from public.products where id = v_product_id and status = 'published' for share;
+    select * into strict v_product from public.products where id = v_product_id and status = 'published' for update;
     if v_product.inventory is not null and v_product.inventory < v_quantity then raise exception 'insufficient_inventory'; end if;
     v_subtotal := v_subtotal + (v_product.price_cents * v_quantity);
   end loop;
@@ -183,12 +183,12 @@ declare
 begin
   select * into strict v_order from public.orders where id=p_order_id for update;
   if p_status='cancelled' and v_order.inventory_reserved_at is not null and v_order.inventory_released_at is null then
-    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id loop
+    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id order by product_id loop
       update public.products set inventory=inventory+v_item.quantity, updated_at=now() where id=v_item.product_id and inventory is not null;
     end loop;
     v_order.inventory_released_at := now();
   elsif p_status in ('paid','processing','completed') and v_order.inventory_released_at is not null then
-    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id loop
+    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id order by product_id loop
       select inventory into v_inventory from public.products where id=v_item.product_id for update;
       if v_inventory is not null and v_inventory < v_item.quantity then raise exception 'insufficient_inventory_for_reactivation'; end if;
       update public.products set inventory=inventory-v_item.quantity, updated_at=now() where id=v_item.product_id and inventory is not null;
