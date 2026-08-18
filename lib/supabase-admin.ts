@@ -57,6 +57,14 @@ export async function updateMarketplaceOrder(id: string, patch: Record<string, u
   return rows[0] || null;
 }
 
+export async function transitionMarketplaceOrder(id: string, status: MarketplaceOrder["status"], providerReference?: string) {
+  return request<MarketplaceOrder>("rpc/transition_marketplace_order", { method: "POST", body: JSON.stringify({ p_order_id: id, p_status: status, p_provider_reference: providerReference || null }) });
+}
+
+export async function expireMarketplaceOrders(limit = 100) {
+  return request<number>("rpc/expire_marketplace_orders", { method: "POST", body: JSON.stringify({ p_limit: Math.max(1, Math.min(limit, 500)) }) });
+}
+
 export async function recordMarketplacePayment(payment: { user_id: string; order_id: string; provider_reference: string; amount_cents: number; status: string; metadata?: Record<string, unknown> }) {
   await request("payments?on_conflict=provider_reference", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ ...payment, provider: "mercado_pago", metadata: payment.metadata || {} }) });
 }

@@ -1,5 +1,9 @@
 -- Integrações reais do Nexus: Watch, Marketplace e relay de saída do StarkIA.
 
+alter table public.orders add column inventory_reserved_at timestamptz;
+alter table public.orders add column inventory_released_at timestamptz;
+alter table public.orders add column expires_at timestamptz;
+
 create table public.watch_saves (
   user_id uuid not null references public.profiles(id) on delete cascade,
   media_type text not null check (media_type in ('movie','tv')),
@@ -76,8 +80,8 @@ declare
   v_items jsonb;
 begin
   if not exists(select 1 from public.profiles where id = p_buyer_id) then raise exception 'buyer_not_found'; end if;
-  if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) < 1 or jsonb_array_length(p_items) > 20 then raise exception 'invalid_items'; end if;
-  if p_commission_percent < 0 or p_commission_percent > 30 then raise exception 'invalid_commission'; end if;
+  if p_items is null or jsonb_typeof(p_items) is distinct from 'array' or jsonb_array_length(p_items) < 1 or jsonb_array_length(p_items) > 20 then raise exception 'invalid_items'; end if;
+  if p_commission_percent is null or p_commission_percent < 0 or p_commission_percent > 30 then raise exception 'invalid_commission'; end if;
 
   for v_item in select value from jsonb_array_elements(p_items) loop
     v_product_id := (v_item->>'product_id')::uuid;
@@ -90,8 +94,8 @@ begin
   end loop;
 
   v_fee := floor(v_subtotal * p_commission_percent / 100.0);
-  insert into public.orders(buyer_id,status,subtotal_cents,fee_cents,total_cents,payment_provider)
-    values(p_buyer_id,'pending',v_subtotal,v_fee,v_subtotal,'mercado_pago') returning id into v_order_id;
+  insert into public.orders(buyer_id,status,subtotal_cents,fee_cents,total_cents,payment_provider,expires_at)
+    values(p_buyer_id,'pending',v_subtotal,v_fee,v_subtotal,'mercado_pago',now()+interval '30 minutes') returning id into v_order_id;
 
   for v_item in select value from jsonb_array_elements(p_items) loop
     v_product_id := (v_item->>'product_id')::uuid;
@@ -99,7 +103,11 @@ begin
     select * into strict v_product from public.products where id = v_product_id;
     insert into public.order_items(order_id,product_id,seller_id,title_snapshot,unit_price_cents,quantity)
       values(v_order_id,v_product.id,v_product.seller_id,v_product.title,v_product.price_cents,v_quantity);
+    if v_product.inventory is not null then
+      update public.products set inventory=inventory-v_quantity, updated_at=now() where id=v_product.id;
+    end if;
   end loop;
+  update public.orders set inventory_reserved_at=now() where id=v_order_id;
 
   select jsonb_agg(jsonb_build_object('product_id',product_id,'title',title_snapshot,'unit_price_cents',unit_price_cents,'quantity',quantity))
     into v_items from public.order_items where order_id = v_order_id;
@@ -158,3 +166,62 @@ end;
 $$;
 revoke all on function public.complete_starkia_task(text,uuid,boolean,jsonb,text) from public, anon, authenticated;
 grant execute on function public.complete_starkia_task(text,uuid,boolean,jsonb,text) to service_role;
+
+create or replace function public.transition_marketplace_order(
+  p_order_id uuid,
+  p_status public.order_status,
+  p_provider_reference text default null
+) returns public.orders
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_order public.orders%rowtype;
+  v_item record;
+  v_inventory integer;
+begin
+  select * into strict v_order from public.orders where id=p_order_id for update;
+  if p_status='cancelled' and v_order.inventory_reserved_at is not null and v_order.inventory_released_at is null then
+    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id loop
+      update public.products set inventory=inventory+v_item.quantity, updated_at=now() where id=v_item.product_id and inventory is not null;
+    end loop;
+    v_order.inventory_released_at := now();
+  elsif p_status in ('paid','processing','completed') and v_order.inventory_released_at is not null then
+    for v_item in select product_id, sum(quantity)::integer as quantity from public.order_items where order_id=p_order_id and product_id is not null group by product_id loop
+      select inventory into v_inventory from public.products where id=v_item.product_id for update;
+      if v_inventory is not null and v_inventory < v_item.quantity then raise exception 'insufficient_inventory_for_reactivation'; end if;
+      update public.products set inventory=inventory-v_item.quantity, updated_at=now() where id=v_item.product_id and inventory is not null;
+    end loop;
+    v_order.inventory_reserved_at := now();
+    v_order.inventory_released_at := null;
+  end if;
+  update public.orders set status=p_status,
+    provider_reference=coalesce(p_provider_reference,provider_reference),
+    inventory_reserved_at=v_order.inventory_reserved_at,
+    inventory_released_at=v_order.inventory_released_at,
+    updated_at=now()
+    where id=p_order_id returning * into v_order;
+  return v_order;
+end;
+$$;
+revoke all on function public.transition_marketplace_order(uuid,public.order_status,text) from public, anon, authenticated;
+grant execute on function public.transition_marketplace_order(uuid,public.order_status,text) to service_role;
+
+create or replace function public.expire_marketplace_orders(p_limit integer default 100)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare v_order_id uuid; v_count integer := 0;
+begin
+  for v_order_id in select id from public.orders where status='pending' and expires_at < now() order by expires_at for update skip locked limit greatest(1,least(p_limit,500)) loop
+    perform public.transition_marketplace_order(v_order_id,'cancelled',null);
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+revoke all on function public.expire_marketplace_orders(integer) from public, anon, authenticated;
+grant execute on function public.expire_marketplace_orders(integer) to service_role;

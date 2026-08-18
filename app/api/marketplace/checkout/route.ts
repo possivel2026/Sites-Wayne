@@ -3,7 +3,7 @@ import { getFeatureStatus } from "@/lib/server/features";
 import { apiError, bodyWithinLimit, clientIp, fetchWithTimeout, isSameOrigin, requestId } from "@/lib/server/http";
 import { log } from "@/lib/server/logger";
 import { rateLimit } from "@/lib/server/rate-limit";
-import { createMarketplaceOrder, updateMarketplaceOrder } from "@/lib/supabase-admin";
+import { createMarketplaceOrder, transitionMarketplaceOrder, updateMarketplaceOrder } from "@/lib/supabase-admin";
 import { getUserFromAccessToken, readSessionTokens } from "@/lib/supabase/auth";
 import { parseMarketplaceCart } from "@/lib/validation";
 
@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
         metadata: { order_id: order.id, kind: "marketplace" },
         back_urls: { success: `${origin}/marketplace/pedido?id=${order.id}`, pending: `${origin}/marketplace/pedido?id=${order.id}`, failure: `${origin}/marketplace/pedido?id=${order.id}` },
         auto_return: "approved",
+        expires: true,
+        expiration_date_to: new Date(Date.now() + 30 * 60_000).toISOString(),
         notification_url: `${origin}/api/mercado-pago/webhook?source_news=webhooks`,
         statement_descriptor: "NEXUS MARKET",
       }),
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     const checkoutUrl = process.env.MERCADO_PAGO_TEST_MODE === "true" ? preference.sandbox_init_point || preference.init_point : preference.init_point;
     return NextResponse.json({ orderId: order.id, checkoutUrl, requestId: id }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
-    if (order) await updateMarketplaceOrder(order.id, { status: "cancelled" }).catch(() => undefined);
+    if (order) await transitionMarketplaceOrder(order.id, "cancelled").catch(() => undefined);
     log("error", "marketplace-checkout", "preference_creation_failed", { requestId: id, orderId: order?.id, error });
     return apiError("Não foi possível iniciar o pagamento. Nenhuma aprovação foi registrada.", 502, id, "checkout_unavailable");
   }

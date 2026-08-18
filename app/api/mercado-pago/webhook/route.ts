@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { getMarketplaceOrderById, getWayneOrderById, recordMarketplacePayment, updateMarketplaceOrder, updateWayneOrder } from "@/lib/supabase-admin";
+import { getMarketplaceOrderById, getWayneOrderById, recordMarketplacePayment, transitionMarketplaceOrder, updateWayneOrder } from "@/lib/supabase-admin";
 import { bodyWithinLimit, fetchSafeGet, requestId } from "@/lib/server/http";
 import { log } from "@/lib/server/logger";
 
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
       : payment.status === "refunded" || payment.status === "charged_back" ? "refunded"
         : payment.status === "cancelled" || payment.status === "rejected" ? "cancelled"
           : marketOrder.status;
-    await updateMarketplaceOrder(marketOrder.id, { status, provider_reference: providerPaymentId });
+    await transitionMarketplaceOrder(marketOrder.id, status, providerPaymentId);
     await recordMarketplacePayment({ user_id: marketOrder.buyer_id, order_id: marketOrder.id, provider_reference: providerPaymentId, amount_cents: paidCents, status: payment.status || "pending", metadata: { currency: payment.currency_id } });
     return NextResponse.json({ received: true });
   } catch (error) {
