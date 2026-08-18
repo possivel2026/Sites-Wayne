@@ -37,8 +37,14 @@ Abra `http://localhost:3000`.
 
 ```bash
 npm run lint
+npm run typecheck
+npm test
 npm run build
+# ou execute tudo:
+npm run verify
 ```
+
+O GitHub Actions executa esse conjunto em cada pull request e também verifica possíveis segredos e vulnerabilidades críticas de dependências.
 
 ## Publicar na Vercel
 
@@ -51,11 +57,11 @@ npm run build
 
 ## Supabase
 
-A migration inicial está em `supabase/migrations/202608100001_initial_nexus_schema.sql`. O Autopilot usa também `supabase/migrations/202608170001_wayne_autopilot.sql`, que cria os pedidos privados, ativa RLS e restringe o acesso à chave de serviço. Cadastre administradores pelo painel seguro do Supabase; não existe senha administrativa fixa no código.
+A migration inicial está em `supabase/migrations/202608100001_initial_nexus_schema.sql`. O Autopilot usa também `supabase/migrations/202608170001_wayne_autopilot.sql`, que cria os pedidos privados. A migration `supabase/migrations/202608170002_security_hardening.sql` fecha escritas financeiras pelo cliente, limita campos editáveis do perfil e ativa RLS nas tabelas restantes. Cadastre administradores pelo painel seguro do Supabase; não existe senha administrativa fixa no código.
 
 ## Ativar o Wayne Autopilot
 
-1. Execute as duas migrations no Supabase.
+1. Execute as três migrations no Supabase, na ordem dos nomes.
 2. Configure na Vercel `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`.
 3. Crie uma aplicação no Mercado Pago e configure `MERCADO_PAGO_ACCESS_TOKEN`.
 4. Cadastre o webhook de pagamentos apontando para `/api/mercado-pago/webhook` e configure `MERCADO_PAGO_WEBHOOK_SECRET` com a assinatura secreta exibida pelo Mercado Pago.
@@ -63,6 +69,15 @@ A migration inicial está em `supabase/migrations/202608100001_initial_nexus_sch
 6. Configure `CRON_SECRET` para proteger a verificação diária definida em `vercel.json`.
 
 O sistema só publica depois de consultar o pagamento na API do Mercado Pago e validar identificador do pedido, valor e moeda. O nome e o e-mail do comprador não são publicados; somente o conteúdo explicitamente autorizado para o site.
+
+## Operação e saúde
+
+- `GET /api/health`: informa se aplicação, banco, pagamentos e IA estão operacionais, configurados ou inativos, sem revelar credenciais.
+- `GET /api/maintenance`: execução protegida pelo `CRON_SECRET` para verificar sites publicados.
+- falhas externas usam timeout; retries são aplicados somente a leituras seguras.
+- logs server-side são JSON e removem campos com nomes sensíveis.
+
+A arquitetura verificada está em `docs/ARCHITECTURE.md`; a auditoria P0/P1 está em `docs/AUDIT-2026-08-17.md`.
 
 ## Segurança
 
@@ -81,5 +96,6 @@ components/          interface e módulos interativos
 config/site.ts       nome e identidade centralizados
 public/              ícones e service worker
 supabase/migrations/ banco PostgreSQL e RLS
+docs/                arquitetura e auditoria técnica
 .env.example         variáveis necessárias
 ```

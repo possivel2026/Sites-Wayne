@@ -2,6 +2,7 @@
 
 :root { --font: var(--font-geist-sans), Inter, ui-sans-serif, system-ui; }
 * { box-sizing: border-box; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
 html { scroll-behavior: smooth; scrollbar-gutter: stable; overflow-x: hidden; }
 body { margin: 0; font-family: var(--font); background: #05060a; overflow-x: hidden; }
 button, input { font: inherit; }

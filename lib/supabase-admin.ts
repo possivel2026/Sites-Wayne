@@ -1,4 +1,5 @@
 import type { WayneSiteOrder } from "@/lib/wayne-autopilot";
+import { fetchSafeGet, fetchWithTimeout } from "@/lib/server/http";
 
 function getConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -9,7 +10,7 @@ function getConfig() {
 
 async function request<T>(path: string, init: RequestInit = {}) {
   const { url, key } = getConfig();
-  const response = await fetch(`${url}/rest/v1/${path}`, {
+  const initWithHeaders: RequestInit = {
     ...init,
     cache: "no-store",
     headers: {
@@ -18,7 +19,9 @@ async function request<T>(path: string, init: RequestInit = {}) {
       "content-type": "application/json",
       ...(init.headers || {}),
     },
-  });
+  };
+  const target = `${url}/rest/v1/${path}`;
+  const response = !init.method || init.method === "GET" ? await fetchSafeGet(target, initWithHeaders) : await fetchWithTimeout(target, initWithHeaders);
   if (!response.ok) throw new Error(`supabase_${response.status}_${await response.text()}`);
   if (response.status === 204) return undefined as T;
   return await response.json() as T;

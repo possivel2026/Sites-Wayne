@@ -47,7 +47,7 @@ export function formatBRL(cents: number) {
 }
 
 export function cleanText(value: unknown, maxLength: number) {
-  return typeof value === "string" ? value.trim().replace(/[<>]/g, "").slice(0, maxLength) : "";
+  return typeof value === "string" ? value.trim().replace(/<[^>]*>/g, "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").slice(0, maxLength) : "";
 }
 
 export function cleanPhone(value: unknown) {
@@ -76,10 +76,10 @@ export function parseSiteOrderInput(value: unknown) {
   const clientEmail = cleanText(body.clientEmail, 160).toLowerCase();
   const acceptedTerms = body.acceptedTerms === true;
 
-  if (!waynePackages[packageId] || !wayneTemplates[templateId]) return { error: "Pacote ou modelo inválido." } as const;
-  if (!siteData.businessName || !siteData.businessType || !siteData.headline || !siteData.city || !siteData.publicWhatsApp || siteData.services.length < 2) return { error: "Preencha todos os dados públicos do site e pelo menos dois serviços." } as const;
-  if (!clientName || !/^\S+@\S+\.\S+$/.test(clientEmail)) return { error: "Informe nome e e-mail válidos para a entrega." } as const;
-  if (!acceptedTerms) return { error: "É necessário aceitar os termos e autorizar a publicação." } as const;
+  if (!waynePackages[packageId] || !wayneTemplates[templateId]) return { ok: false, error: "Pacote ou modelo inválido." } as const;
+  if (!siteData.businessName || !siteData.businessType || !siteData.headline || !siteData.city || !siteData.publicWhatsApp || siteData.services.length < 2) return { ok: false, error: "Preencha todos os dados públicos do site e pelo menos dois serviços." } as const;
+  if (!clientName || !/^\S+@\S+\.\S+$/.test(clientEmail)) return { ok: false, error: "Informe nome e e-mail válidos para a entrega." } as const;
+  if (!acceptedTerms) return { ok: false, error: "É necessário aceitar os termos e autorizar a publicação." } as const;
 
-  return { data: { packageId, templateId, siteData, clientName, clientEmail } } as const;
+  return { ok: true, data: { packageId, templateId, siteData, clientName, clientEmail } } as const;
 }
