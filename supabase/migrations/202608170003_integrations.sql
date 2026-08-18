@@ -4,6 +4,47 @@ alter table public.orders add column inventory_reserved_at timestamptz;
 alter table public.orders add column inventory_released_at timestamptz;
 alter table public.orders add column expires_at timestamptz;
 
+-- O aceite fica em trilha imutável; raw_user_meta_data serve apenas como evento de entrada.
+create table public.legal_consents (
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  document text not null check (document in ('terms','privacy')),
+  version text not null,
+  accepted_at timestamptz not null default now(),
+  source text not null default 'nexus_auth',
+  primary key (user_id, document, version)
+);
+alter table public.legal_consents enable row level security;
+revoke all on table public.legal_consents from anon, authenticated;
+grant select on table public.legal_consents to authenticated;
+create policy "users read own legal consents" on public.legal_consents for select to authenticated using ((select auth.uid()) = user_id);
+
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path=''
+as $$
+begin
+  insert into public.profiles(id,username,display_name)
+  values(new.id,'user_'||substr(replace(new.id::text,'-',''),1,10),coalesce(new.raw_user_meta_data->>'display_name','Novo membro'));
+  return new;
+end;
+$$;
+
+create or replace function public.record_legal_consent() returns trigger
+language plpgsql security definer set search_path=''
+as $$
+begin
+  if new.raw_user_meta_data->>'terms_version' = '2026-08-17'
+    and (tg_op='INSERT' or old.raw_user_meta_data->>'terms_version' is distinct from new.raw_user_meta_data->>'terms_version') then
+    insert into public.legal_consents(user_id,document,version,accepted_at)
+      values(new.id,'terms','2026-08-17',now()),(new.id,'privacy','2026-08-17',now())
+      on conflict do nothing;
+  end if;
+  return new;
+end;
+$$;
+drop trigger if exists zz_record_legal_consent on auth.users;
+create trigger zz_record_legal_consent after insert or update of raw_user_meta_data on auth.users
+  for each row execute procedure public.record_legal_consent();
+
 create table public.watch_saves (
   user_id uuid not null references public.profiles(id) on delete cascade,
   media_type text not null check (media_type in ('movie','tv')),
