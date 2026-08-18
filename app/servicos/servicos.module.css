@@ -10,3 +10,5 @@
 
 @media(max-width:900px){.proof{grid-template-columns:1fr 300px}.packages{grid-template-columns:1fr 1fr}.packages article:last-child{grid-column:1/-1}.recurring{grid-template-columns:1fr 1fr}.recurring>div{grid-column:1/-1}.process ol{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){.proof{grid-template-columns:1fr}.proof>div:first-child{padding:29px}.proofMark{min-height:230px}.packages{grid-template-columns:1fr}.packages article:last-child{grid-column:auto}.recurring{grid-template-columns:1fr}.recurring>div{grid-column:auto}.process ol{grid-template-columns:1fr}.briefing{padding:25px 20px}.briefing form{grid-template-columns:1fr}.full{grid-column:auto}.section header h2,.process header h2,.briefing h2{font-size:25px}}
+
+.briefing .check{display:flex;align-items:center;gap:9px;color:var(--muted);cursor:pointer}.briefing .check input{display:inline-block;width:15px;height:15px;margin:0;padding:0;accent-color:#6b4de8}.resultActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.result .copyButton{border:1px solid var(--line);background:transparent;color:var(--text)}
