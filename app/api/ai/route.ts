@@ -5,8 +5,6 @@ import { bodyWithinLimit, clientIp, fetchWithTimeout, isSameOrigin, requestId } 
 import { log } from "@/lib/server/logger";
 import { rateLimit } from "@/lib/server/rate-limit";
 
-const demoResult = (prompt: string) => `Plano Nexus para “${prompt}”\n\n1. Comece pelo resultado mais simples que gera valor real.\n2. Valide com 10 pessoas antes de investir em escala.\n3. Transforme o que funcionar em processo repetível.\n\nPróximo passo: defina uma ação que possa ser concluída ainda hoje.`;
-
 export async function POST(request: NextRequest) {
   const id = requestId(request);
   if (!isSameOrigin(request)) return NextResponse.json({ error: "Origem não autorizada.", requestId: id }, { status: 403 });
@@ -27,7 +25,7 @@ export async function POST(request: NextRequest) {
     log("error", "nexus-ai", "invalid_provider_config", { requestId: id, error });
     return NextResponse.json({ error: "O provedor de IA está configurado incorretamente.", requestId: id }, { status: 503 });
   }
-  if (!provider) return NextResponse.json({ result: demoResult(prompt), mode: "demo", remaining: usage.remaining, requestId: id });
+  if (!provider) return NextResponse.json({ error: "O provedor real de IA ainda não foi ativado.", code: "ai_not_configured", requestId: id }, { status: 503 });
 
   try {
     const response = await fetchWithTimeout(provider.apiUrl, {
