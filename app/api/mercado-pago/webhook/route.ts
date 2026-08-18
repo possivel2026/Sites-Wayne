@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { getWayneOrderById, updateWayneOrder } from "@/lib/supabase-admin";
+import { getMarketplaceOrderById, getWayneOrderById, recordMarketplacePayment, transitionMarketplaceOrder, updateWayneOrder } from "@/lib/supabase-admin";
 import { bodyWithinLimit, fetchSafeGet, requestId } from "@/lib/server/http";
 import { log } from "@/lib/server/logger";
 
@@ -52,32 +52,40 @@ export async function POST(request: NextRequest) {
     const payment = await response.json() as Payment;
     const orderId = payment.external_reference || "";
     if (!/^[0-9a-f-]{36}$/i.test(orderId)) return NextResponse.json({ received: true });
-    const order = await getWayneOrderById(orderId);
-    if (!order) return NextResponse.json({ received: true });
-
-    const amountMatches = Math.round(Number(payment.transaction_amount || 0) * 100) === order.amount_cents;
+    const providerPaymentId = String(payment.id || dataId);
+    const paidCents = Math.round(Number(payment.transaction_amount || 0) * 100);
     const currencyMatches = payment.currency_id === "BRL";
-    if (!amountMatches || !currencyMatches) {
-      await updateWayneOrder(order.id, { payment_status: "amount_mismatch", provider_payment_id: String(payment.id || dataId) });
-      log("error", "wayne-webhook", "payment_mismatch", { requestId: requestIdentifier, orderId: order.id, paymentId: payment.id, amountMatches, currencyMatches });
+    const wayneOrder = await getWayneOrderById(orderId);
+    if (wayneOrder) {
+      const amountMatches = paidCents === wayneOrder.amount_cents;
+      if (!amountMatches || !currencyMatches) {
+        await updateWayneOrder(wayneOrder.id, { payment_status: "amount_mismatch", provider_payment_id: providerPaymentId });
+        log("error", "wayne-webhook", "payment_mismatch", { requestId: requestIdentifier, orderId: wayneOrder.id, paymentId: payment.id, amountMatches, currencyMatches });
+        return NextResponse.json({ received: true });
+      }
+      if (payment.status === "approved") {
+        await updateWayneOrder(wayneOrder.id, { status: "published", payment_status: "approved", provider_payment_id: providerPaymentId, published_at: wayneOrder.published_at || new Date().toISOString() });
+      } else if (payment.status === "refunded" || payment.status === "charged_back") {
+        await updateWayneOrder(wayneOrder.id, { status: "refunded", payment_status: payment.status, provider_payment_id: providerPaymentId });
+      } else if (payment.status === "cancelled" || payment.status === "rejected") {
+        await updateWayneOrder(wayneOrder.id, { status: "cancelled", payment_status: payment.status, provider_payment_id: providerPaymentId });
+      } else await updateWayneOrder(wayneOrder.id, { payment_status: payment.status || "pending", provider_payment_id: providerPaymentId });
       return NextResponse.json({ received: true });
     }
 
-    const providerPaymentId = String(payment.id || dataId);
-    if (payment.status === "approved") {
-      await updateWayneOrder(order.id, {
-        status: "published",
-        payment_status: "approved",
-        provider_payment_id: providerPaymentId,
-        published_at: order.published_at || new Date().toISOString(),
-      });
-    } else if (payment.status === "refunded" || payment.status === "charged_back") {
-      await updateWayneOrder(order.id, { status: "refunded", payment_status: payment.status, provider_payment_id: providerPaymentId });
-    } else if (payment.status === "cancelled" || payment.status === "rejected") {
-      await updateWayneOrder(order.id, { status: "cancelled", payment_status: payment.status, provider_payment_id: providerPaymentId });
-    } else {
-      await updateWayneOrder(order.id, { payment_status: payment.status || "pending", provider_payment_id: providerPaymentId });
+    const marketOrder = await getMarketplaceOrderById(orderId);
+    if (!marketOrder) return NextResponse.json({ received: true });
+    const amountMatches = paidCents === marketOrder.total_cents;
+    if (!amountMatches || !currencyMatches) {
+      log("error", "marketplace-webhook", "payment_mismatch", { requestId: requestIdentifier, orderId: marketOrder.id, paymentId: payment.id, amountMatches, currencyMatches });
+      return NextResponse.json({ received: true });
     }
+    const status = payment.status === "approved" ? "paid"
+      : payment.status === "refunded" || payment.status === "charged_back" ? "refunded"
+        : payment.status === "cancelled" || payment.status === "rejected" ? "cancelled"
+          : marketOrder.status;
+    await transitionMarketplaceOrder(marketOrder.id, status, providerPaymentId);
+    await recordMarketplacePayment({ user_id: marketOrder.buyer_id, order_id: marketOrder.id, provider_reference: providerPaymentId, amount_cents: paidCents, status: payment.status || "pending", metadata: { currency: payment.currency_id } });
     return NextResponse.json({ received: true });
   } catch (error) {
     log("error", "wayne-webhook", "processing_failed", { requestId: requestIdentifier, dataId, error });

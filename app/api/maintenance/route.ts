@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listPublishedWayneSites, updateWayneOrder } from "@/lib/supabase-admin";
+import { expireMarketplaceOrders, listPublishedWayneSites, updateWayneOrder } from "@/lib/supabase-admin";
 import { fetchWithTimeout, requestId, secureCompare } from "@/lib/server/http";
 import { log } from "@/lib/server/logger";
 
@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   if (!secret || !secureCompare(request.headers.get("authorization"), `Bearer ${secret}`)) return NextResponse.json({ error: "Não autorizado.", requestId: id }, { status: 401 });
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : request.nextUrl.origin);
   try {
+    const expiredMarketplaceOrders = await expireMarketplaceOrders(100).catch(() => null);
     const sites = await listPublishedWayneSites(100);
     const checkedAt = new Date().toISOString();
     const results = await Promise.all(sites.map(async (site) => {
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       await updateWayneOrder(site.id, { last_health_status: status, last_health_check_at: checkedAt });
       return { slug: site.slug, status };
     }));
-    return NextResponse.json({ checkedAt, sites: results.length, results, requestId: id }, { headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ checkedAt, sites: results.length, results, expiredMarketplaceOrders, requestId: id }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
     log("error", "wayne-maintenance", "health_sweep_failed", { requestId: id, error });
     return NextResponse.json({ error: "Falha na manutenção automática.", requestId: id }, { status: 500 });

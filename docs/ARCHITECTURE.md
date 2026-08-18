@@ -2,7 +2,7 @@
 
 ## Escopo disponível
 
-Este repositório contém uma aplicação Next.js única que reúne Nexus Brasil, Sites Wayne e Barbearia Wayne. StarkIA/JARVIS/ULTRON não está presente neste repositório e, portanto, não é alterado por este projeto.
+Este repositório contém Nexus Brasil, Sites Wayne e Barbearia Wayne. A integração com o repositório privado StarkIA acontece por um relay HTTPS de saída: o Nexus nunca acessa diretamente o bridge local/Tailscale do computador.
 
 ## Camadas
 
@@ -22,6 +22,23 @@ Este repositório contém uma aplicação Next.js única que reúne Nexus Brasil
 | Mercado Pago | Checkout e confirmação | Checkout bloqueado | webhook assinado, consulta da cobrança, valor/moeda |
 | Provedor de IA | Ferramentas Nexus IA | Demonstração identificada | URL HTTPS, timeout e limite de uso |
 | Vercel | Deploy e cron | Site público | CI, preview e segredo do cron |
+| TMDB | Catálogo Watch | Módulo desativado | token server-side, cache e rate limit |
+| Supabase Auth | Conta e sessão | Módulo desativado | cookies HttpOnly, RLS e refresh token |
+| StarkIA Relay | Dispositivos e tarefas | Módulo desativado | token com hash HMAC, allowlist e polling de saída |
+
+## Feature flags
+
+Uma feature fica pronta somente quando a flag explícita e todas as credenciais mínimas estão presentes. O status público contém apenas booleanos; nomes de variáveis ausentes e valores secretos nunca são enviados ao navegador.
+
+## StarkIA sem exposição de rede
+
+1. O usuário autenticado cria um dispositivo e recebe o token apenas uma vez.
+2. O banco armazena somente HMAC-SHA-256 do token.
+3. O worker Windows chama `/api/starkia/agent/poll` por HTTPS.
+4. Uma função PostgreSQL reivindica uma tarefa de forma atômica com `skip locked`.
+5. Somente `health`, `list_jobs` e `assistant_message` entram na fila.
+6. O DesktopAssistantService mantém as confirmações e políticas de segurança já existentes.
+7. O resultado é vinculado ao mesmo dispositivo e permanece auditável.
 
 ## Fluxo financeiro
 

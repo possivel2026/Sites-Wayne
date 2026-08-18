@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages */
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { portalNavigation, siteConfig } from "@/config/site";
 
 export function ModuleShell({ active, eyebrow, title, description, children, action }: {
@@ -15,6 +15,12 @@ export function ModuleShell({ active, eyebrow, title, description, children, act
   const [light, setLight] = useState(false);
   const [search, setSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [account, setAccount] = useState<{ authenticated: boolean; name?: string } | null>(null);
+  useEffect(() => {
+    fetch("/api/auth/session").then((response) => response.json()).then((data: { authenticated?: boolean; user?: { email?: string; user_metadata?: { display_name?: string; full_name?: string } } }) => {
+      setAccount({ authenticated: Boolean(data.authenticated), name: data.user?.user_metadata?.display_name || data.user?.user_metadata?.full_name || data.user?.email });
+    }).catch(() => setAccount({ authenticated: false }));
+  }, []);
   const quickResults = portalNavigation.slice(1).filter((item) => item.label.toLocaleLowerCase("pt-BR").includes(searchQuery.trim().toLocaleLowerCase("pt-BR")));
   return (
     <div className="nexus-app module-app" data-theme={light ? "light" : "dark"}>
@@ -24,13 +30,13 @@ export function ModuleShell({ active, eyebrow, title, description, children, act
           {portalNavigation.map((item) => <a className={active === item.href ? "active" : ""} href={item.href} key={item.href}><span>{item.icon}</span>{item.label}{item.href === "/ia" && <em>Beta</em>}</a>)}
         </nav>
         <a className="module-plan" href="/planos"><span>✦</span><p><strong>Planos Nexus</strong><small>Preços e recursos em definição.</small></p><i>→</i></a>
-        <div className="module-profile"><span className="avatar avatar-way">MW</span><p><strong>Visitante</strong><small>Modo demonstração</small></p><a href="/entrar">Entrar</a></div>
+        <div className="module-profile"><span className="avatar avatar-way">{account?.authenticated ? (account.name || "N").slice(0,2).toUpperCase() : "NB"}</span><p><strong>{account?.authenticated ? account.name || "Conta Nexus" : "Visitante"}</strong><small>{account?.authenticated ? "Sessão protegida" : "Acesso público"}</small></p><a href={account?.authenticated ? "/conta" : "/entrar"}>{account?.authenticated ? "Conta" : "Entrar"}</a></div>
       </aside>
       <main className="module-main">
         <header className="module-topbar">
           <a className="module-mobile-logo" href="/"><span className="brand-mark"><i /><b /></span><strong>NEXUS</strong></a>
           <button className="module-search" onClick={() => setSearch(true)}><span>⌕</span> Buscar em todo o Nexus <kbd>⌘ K</kbd></button>
-          <div><span className="online"><i /> Versão beta</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><a className="primary-small" href="/entrar">Criar conta</a></div>
+          <div><span className="online"><i /> Versão beta</span><button className="icon-button" aria-label="Alternar tema" onClick={() => setLight(!light)}>{light ? "☾" : "☼"}</button><a className="primary-small" href={account?.authenticated ? "/conta" : "/cadastro"}>{account?.authenticated ? "Minha conta" : "Criar conta"}</a></div>
         </header>
         <div className="module-content">
           <section className="module-hero"><div><span className="section-kicker">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{action}</section>
