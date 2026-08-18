@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { ModuleShell } from "@/components/module-shell";
 import styles from "./servicos.module.css";
 
@@ -98,7 +99,7 @@ export default function ServicesPage() {
       eyebrow="SITES WAYNE • SERVIÇOS"
       title="Seu negócio merece um site que gere contatos."
       description="Sites rápidos, responsivos e construídos para transformar interesse em conversa comercial — sem números inventados e sem promessas de resultado garantido."
-      action={<a className="primary-button" href={instantContact} target="_blank" rel="noreferrer">Falar no WhatsApp <span>→</span></a>}
+      action={<div className={styles.heroActions}><Link className="primary-button" href="/criar-site">CRIAR MEU SITE <span>→</span></Link><a href={instantContact} target="_blank" rel="noreferrer">Tirar uma dúvida</a></div>}
     >
       <section className={styles.proof} aria-label="Projeto em destaque">
         <div>
@@ -114,7 +115,7 @@ export default function ServicesPage() {
         <header>
           <span>OFERTA DE LANÇAMENTO</span>
           <h2 id="offers-title">Escolha o ponto de partida.</h2>
-          <p>Valores iniciais. O escopo, o prazo e o preço final são confirmados no diagnóstico.</p>
+          <p>Valores fechados para um dos três modelos padronizados. Projetos fora do padrão passam por diagnóstico.</p>
         </header>
         <div className={styles.packages}>
           {packages.map((item) => (
@@ -124,7 +125,7 @@ export default function ServicesPage() {
               <h3><small>a partir de</small>{item.price}</h3>
               <p>{item.description}</p>
               <ul>{item.features.map((feature) => <li key={feature}>✓ {feature}</li>)}</ul>
-              <a href="#diagnostico" onClick={() => choosePackage(item.name)}>Quero este pacote <b>→</b></a>
+              <Link href="/criar-site">Criar com este pacote <b>→</b></Link>
             </article>
           ))}
         </div>
@@ -137,12 +138,13 @@ export default function ServicesPage() {
       </section>
 
       <section className={styles.process} aria-labelledby="process-title">
-        <header><span>PROCESSO ENXUTO</span><h2 id="process-title">Quatro etapas. Nenhuma surpresa.</h2></header>
+        <header><span>AUTOPILOT</span><h2 id="process-title">Da escolha à manutenção automática.</h2></header>
         <ol>
-          <li><b>01</b><div><strong>Diagnóstico</strong><p>Objetivo, público e oferta.</p></div></li>
-          <li><b>02</b><div><strong>Proposta</strong><p>Escopo, prazo e valor definidos.</p></div></li>
-          <li><b>03</b><div><strong>Construção</strong><p>Desenvolvimento e revisão técnica.</p></div></li>
-          <li><b>04</b><div><strong>Publicação</strong><p>Entrega validada e próximos passos.</p></div></li>
+          <li><b>01</b><div><strong>Configuração</strong><p>Modelo, conteúdo e prévia.</p></div></li>
+          <li><b>02</b><div><strong>Pagamento</strong><p>Checkout seguro Mercado Pago.</p></div></li>
+          <li><b>03</b><div><strong>Confirmação</strong><p>Webhook valida valor e status.</p></div></li>
+          <li><b>04</b><div><strong>Publicação</strong><p>Link liberado automaticamente.</p></div></li>
+          <li><b>05</b><div><strong>Manutenção</strong><p>Verificação técnica diária.</p></div></li>
         </ol>
       </section>
 
