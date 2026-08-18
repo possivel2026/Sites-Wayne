@@ -31,9 +31,11 @@ $$;
 create or replace function public.record_legal_consent() returns trigger
 language plpgsql security definer set search_path=''
 as $$
+declare v_changed boolean := false;
 begin
-  if new.raw_user_meta_data->>'terms_version' = '2026-08-17'
-    and (tg_op='INSERT' or old.raw_user_meta_data->>'terms_version' is distinct from new.raw_user_meta_data->>'terms_version') then
+  if tg_op='INSERT' then v_changed := true; end if;
+  if tg_op='UPDATE' then v_changed := old.raw_user_meta_data->>'terms_version' is distinct from new.raw_user_meta_data->>'terms_version'; end if;
+  if new.raw_user_meta_data->>'terms_version' = '2026-08-17' and v_changed then
     insert into public.legal_consents(user_id,document,version,accepted_at)
       values(new.id,'terms','2026-08-17',now()),(new.id,'privacy','2026-08-17',now())
       on conflict do nothing;
@@ -42,7 +44,11 @@ begin
 end;
 $$;
 drop trigger if exists zz_record_legal_consent on auth.users;
-create trigger zz_record_legal_consent after insert or update of raw_user_meta_data on auth.users
+drop trigger if exists zz_record_legal_consent_insert on auth.users;
+drop trigger if exists zz_record_legal_consent_update on auth.users;
+create trigger zz_record_legal_consent_insert after insert on auth.users
+  for each row execute procedure public.record_legal_consent();
+create trigger zz_record_legal_consent_update after update of raw_user_meta_data on auth.users
   for each row execute procedure public.record_legal_consent();
 
 create table public.watch_saves (
