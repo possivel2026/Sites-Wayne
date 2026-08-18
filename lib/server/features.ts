@@ -15,8 +15,20 @@ function enabled(name: string) {
 function watchStatus(): FeatureStatus {
   const base = status("NEXUS_WATCH_ENABLED", ["TMDB_ACCESS_TOKEN", "NEXT_PUBLIC_TMDB_LOGO_URL"]);
   const licensed = enabled("TMDB_COMMERCIAL_APPROVED");
-  const missing = licensed ? base.missing : [...base.missing, "TMDB_COMMERCIAL_APPROVED=true"];
-  return { enabled: base.enabled, ready: base.enabled && licensed && base.missing.length === 0, missing };
+  let validLogo = false;
+  try { validLogo = new URL(process.env.NEXT_PUBLIC_TMDB_LOGO_URL || "").protocol === "https:"; } catch { validLogo = false; }
+  const missing = [...base.missing];
+  if (!licensed) missing.push("TMDB_COMMERCIAL_APPROVED=true");
+  if (present("NEXT_PUBLIC_TMDB_LOGO_URL") && !validLogo) missing.push("NEXT_PUBLIC_TMDB_LOGO_URL=https://...");
+  return { enabled: base.enabled, ready: base.enabled && licensed && validLogo && base.missing.length === 0, missing };
+}
+
+function starkiaStatus(): FeatureStatus {
+  const base = status("STARKIA_ENABLED", ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "STARKIA_RELAY_SECRET"]);
+  const strongSecret = (process.env.STARKIA_RELAY_SECRET?.length || 0) >= 32;
+  const missing = [...base.missing];
+  if (present("STARKIA_RELAY_SECRET") && !strongSecret) missing.push("STARKIA_RELAY_SECRET>=32");
+  return { enabled: base.enabled, ready: base.enabled && strongSecret && base.missing.length === 0, missing };
 }
 
 function present(name: string) {
@@ -44,11 +56,7 @@ export function getFeatureStatus(name: FeatureName): FeatureStatus {
         "MERCADO_PAGO_WEBHOOK_SECRET",
       ]);
     case "starkia":
-      return status("STARKIA_ENABLED", [
-        "NEXT_PUBLIC_SUPABASE_URL",
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "STARKIA_RELAY_SECRET",
-      ]);
+      return starkiaStatus();
   }
 }
 
