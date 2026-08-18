@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getWayneOrderById, updateWayneOrder } from "@/lib/supabase-admin";
+import { bodyWithinLimit, fetchSafeGet, requestId } from "@/lib/server/http";
+import { log } from "@/lib/server/logger";
 
 type Payment = {
   id?: number;
@@ -17,6 +19,9 @@ function validSignature(request: NextRequest, dataId: string) {
   if (!secret || !signature || !requestId) return false;
   const parts = Object.fromEntries(signature.split(",").map((part) => part.trim().split("=")));
   if (!parts.ts || !parts.v1) return false;
+  const signatureTime = Number(parts.ts);
+  const signatureTimeMs = signatureTime < 10_000_000_000 ? signatureTime * 1000 : signatureTime;
+  if (!Number.isFinite(signatureTimeMs) || Math.abs(Date.now() - signatureTimeMs) > 5 * 60_000) return false;
   const manifest = `id:${dataId.toLowerCase()};request-id:${requestId};ts:${parts.ts};`;
   const calculated = createHmac("sha256", secret).update(manifest).digest("hex");
   const expected = Buffer.from(parts.v1, "utf8");
@@ -25,19 +30,24 @@ function validSignature(request: NextRequest, dataId: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const requestIdentifier = requestId(request);
+  if (!bodyWithinLimit(request, 65_536)) return NextResponse.json({ error: "Payload muito grande." }, { status: 413 });
   const body = await request.json().catch(() => ({})) as { type?: string; data?: { id?: string | number } };
   const dataId = request.nextUrl.searchParams.get("data.id") || String(body.data?.id || "");
   if (!dataId || body.type && body.type !== "payment") return NextResponse.json({ received: true });
-  if (!validSignature(request, dataId)) return NextResponse.json({ error: "Assinatura inválida." }, { status: 401 });
+  if (!validSignature(request, dataId)) {
+    log("warn", "wayne-webhook", "invalid_signature", { requestId: requestIdentifier, dataId });
+    return NextResponse.json({ error: "Assinatura inválida." }, { status: 401 });
+  }
 
   const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
   if (!accessToken) return NextResponse.json({ error: "Integração indisponível." }, { status: 503 });
 
   try {
-    const response = await fetch(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`, {
+    const response = await fetchSafeGet(`https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`, {
       headers: { authorization: `Bearer ${accessToken}` },
       cache: "no-store",
-    });
+    }, 3);
     if (!response.ok) throw new Error(`payment_lookup_${response.status}`);
     const payment = await response.json() as Payment;
     const orderId = payment.external_reference || "";
@@ -49,6 +59,7 @@ export async function POST(request: NextRequest) {
     const currencyMatches = payment.currency_id === "BRL";
     if (!amountMatches || !currencyMatches) {
       await updateWayneOrder(order.id, { payment_status: "amount_mismatch", provider_payment_id: String(payment.id || dataId) });
+      log("error", "wayne-webhook", "payment_mismatch", { requestId: requestIdentifier, orderId: order.id, paymentId: payment.id, amountMatches, currencyMatches });
       return NextResponse.json({ received: true });
     }
 
@@ -69,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("wayne_webhook_error", error instanceof Error ? error.message : error);
+    log("error", "wayne-webhook", "processing_failed", { requestId: requestIdentifier, dataId, error });
     return NextResponse.json({ error: "Falha temporária." }, { status: 500 });
   }
 }

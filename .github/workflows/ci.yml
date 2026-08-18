@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: npm
+      - run: npm ci
+      - run: npm run verify
+      - name: Reject committed secrets
+        shell: bash
+        run: |
+          if git grep -nE '(SUPABASE_SERVICE_ROLE_KEY|MERCADO_PAGO_ACCESS_TOKEN|AI_API_KEY)=[^[:space:]]+' -- ':!*.example'; then
+            echo "Possível segredo encontrado no repositório."
+            exit 1
+          fi
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=critical

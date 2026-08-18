@@ -2,18 +2,26 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { parseSiteOrderInput, slugifyBusiness, waynePackages } from "@/lib/wayne-autopilot";
 import { insertWayneOrder, updateWayneOrder } from "@/lib/supabase-admin";
+import { apiError, bodyWithinLimit, clientIp, fetchWithTimeout, isSameOrigin, requestId } from "@/lib/server/http";
+import { log } from "@/lib/server/logger";
+import { rateLimit } from "@/lib/server/rate-limit";
 
 type PreferenceResponse = { id?: string; init_point?: string; sandbox_init_point?: string; message?: string };
 
 export async function POST(request: NextRequest) {
+  const id = requestId(request);
+  if (!isSameOrigin(request)) return apiError("Origem não autorizada.", 403, id, "origin_denied");
+  if (!bodyWithinLimit(request, 32_768)) return apiError("Solicitação muito grande.", 413, id, "body_too_large");
+  const usage = rateLimit(`checkout:${clientIp(request)}`, 5, 15 * 60_000);
+  if (!usage.allowed) return NextResponse.json({ error: "Muitas tentativas. Aguarde antes de tentar novamente.", code: "rate_limited", requestId: id }, { status: 429, headers: { "retry-after": String(usage.retryAfterSeconds) } });
   let json: unknown;
-  try { json = await request.json(); } catch { return NextResponse.json({ error: "Dados inválidos." }, { status: 400 }); }
+  try { json = await request.json(); } catch { return apiError("Dados inválidos.", 400, id, "invalid_json"); }
   const parsed = parseSiteOrderInput(json);
-  if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  if (!parsed.ok) return apiError(parsed.error, 400, id, "invalid_order");
 
   const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
   if (!accessToken || !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json({ error: "O pagamento automático ainda está sendo ativado.", setupRequired: true }, { status: 503 });
+    return NextResponse.json({ error: "O pagamento automático ainda está sendo ativado.", setupRequired: true, requestId: id }, { status: 503, headers: { "cache-control": "no-store" } });
   }
 
   const { packageId, templateId, siteData, clientName, clientEmail } = parsed.data;
@@ -38,7 +46,7 @@ export async function POST(request: NextRequest) {
     });
 
     const returnUrl = (status: string) => `${origin}/pedido?id=${orderId}&status=${status}`;
-    const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+    const response = await fetchWithTimeout("https://api.mercadopago.com/checkout/preferences", {
       method: "POST",
       headers: {
         authorization: `Bearer ${accessToken}`,
@@ -63,16 +71,16 @@ export async function POST(request: NextRequest) {
         statement_descriptor: "WAYNE SITES",
         payment_methods: { installments: 3 },
       }),
-    });
+    }, 12_000);
     const preference = await response.json() as PreferenceResponse;
     if (!response.ok || !preference.id || !preference.init_point) throw new Error(preference.message || `mercado_pago_${response.status}`);
 
     await updateWayneOrder(orderId, { provider_preference_id: preference.id, payment_status: "preference_created" });
     const checkoutUrl = process.env.MERCADO_PAGO_TEST_MODE === "true" ? preference.sandbox_init_point || preference.init_point : preference.init_point;
-    return NextResponse.json({ orderId, checkoutUrl });
+    return NextResponse.json({ orderId, checkoutUrl, requestId: id }, { headers: { "cache-control": "no-store", "x-request-id": id } });
   } catch (error) {
     await updateWayneOrder(orderId, { payment_status: "preference_error" }).catch(() => undefined);
-    console.error("wayne_checkout_error", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "Não foi possível iniciar o pagamento. Tente novamente." }, { status: 502 });
+    log("error", "wayne-checkout", "preference_creation_failed", { requestId: id, orderId, error });
+    return apiError("Não foi possível iniciar o pagamento. Tente novamente.", 502, id, "checkout_unavailable");
   }
 }
