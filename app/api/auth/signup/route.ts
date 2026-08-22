@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applicationOrigin } from "@/lib/app-origin";
+import { isAcceptableNewPassword } from "@/lib/auth-security";
 import { getFeatureStatus } from "@/lib/server/features";
 import { apiError, bodyWithinLimit, clientIp, isSameOrigin, requestId } from "@/lib/server/http";
+import { log } from "@/lib/server/logger";
 import { rateLimit } from "@/lib/server/rate-limit";
-import { setSessionCookies, signUpWithPassword } from "@/lib/supabase/auth";
+import { isSupabaseAuthUnavailable, setSessionCookies, signUpWithPassword } from "@/lib/supabase/auth";
 
 export async function POST(request: NextRequest) {
   const id = requestId(request);
@@ -15,13 +18,18 @@ export async function POST(request: NextRequest) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const displayName = typeof body.displayName === "string" ? body.displayName.trim().replace(/[<>]/g, "").slice(0, 80) : "";
-  if (!/^\S+@\S+\.\S+$/.test(email) || password.length < 8 || password.length > 128 || displayName.length < 2 || body.acceptedTerms !== "true") return apiError("Revise os dados e aceite os Termos e a Política de Privacidade.", 400, id, "invalid_signup");
+  if (!/^\S+@\S+\.\S+$/.test(email) || !isAcceptableNewPassword(password) || displayName.length < 2 || body.acceptedTerms !== "true") return apiError("Revise os dados, use uma senha com pelo menos 12 caracteres e aceite os Termos e a Política de Privacidade.", 400, id, "invalid_signup");
   try {
-    const result = await signUpWithPassword(email, password, displayName, `${request.nextUrl.origin}/auth/callback`);
+    const result = await signUpWithPassword(email, password, displayName, `${applicationOrigin(request.nextUrl.origin)}/auth/callback`);
     const response = NextResponse.json({ user: result.user, confirmationRequired: !result.access_token, requestId: id }, { status: 201, headers: { "cache-control": "no-store" } });
     if (result.access_token && result.refresh_token && result.expires_in) setSessionCookies(response, { access_token: result.access_token, refresh_token: result.refresh_token, expires_in: result.expires_in });
     return response;
-  } catch {
+  } catch (error) {
+    if (isSupabaseAuthUnavailable(error)) {
+      log("error", "auth", "signup_upstream_unavailable", { requestId: id });
+      return apiError("O cadastro está temporariamente indisponível. Tente novamente.", 503, id, "auth_upstream_unavailable");
+    }
+    log("warn", "auth", "signup_failed", { requestId: id });
     return apiError("Não foi possível concluir o cadastro. Se a conta já existir, tente entrar ou recuperar a senha.", 400, id, "signup_failed");
   }
 }
