@@ -99,7 +99,7 @@ export default function ServicesPage() {
       eyebrow="SITES WAYNE • SERVIÇOS"
       title="Seu negócio merece um site que gere contatos."
       description="Sites rápidos, responsivos e construídos para transformar interesse em conversa comercial — sem números inventados e sem promessas de resultado garantido."
-      action={<div className={styles.heroActions}><Link className="primary-button" href="/criar-site">CRIAR MEU SITE <span>→</span></Link><a href={instantContact} target="_blank" rel="noreferrer">Tirar uma dúvida</a></div>}
+      action={<div className={styles.heroActions}><Link className="primary-button" href="/criar-site">CRIAR MEU SITE <span>→</span></Link><Link href="/auditoria">Auditar site atual</Link><a href={instantContact} target="_blank" rel="noreferrer">Tirar uma dúvida</a></div>}
     >
       <section className={styles.proof} aria-label="Projeto em destaque">
         <div>
@@ -109,6 +109,11 @@ export default function ServicesPage() {
           <a href="/barbearia-wayne">Ver projeto <b>↗</b></a>
         </div>
         <div className={styles.proofMark} aria-hidden="true"><span>BW</span><i /><b /></div>
+      </section>
+
+      <section className={styles.auditCallout} aria-labelledby="audit-callout-title">
+        <div><span>DIAGNÓSTICO GRATUITO</span><h2 id="audit-callout-title">Descubra se o seu site parece uma marca ou apenas mais um template.</h2><p>Dez critérios objetivos, resultado imediato e nenhuma resposta armazenada.</p></div>
+        <Link href="/auditoria">AUDITAR MEU SITE <b>→</b></Link>
       </section>
 
       <section className={styles.section} aria-labelledby="offers-title">

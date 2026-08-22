@@ -27,6 +27,7 @@ const plannedTopics = [
 
 const searchData = [
   { type: "Site", title: "Contratar Sites Wayne", detail: "Pacotes comerciais e diagnóstico inicial", href: "/servicos" },
+  { type: "Site", title: "Auditoria gratuita de site", detail: "Dez critérios e resultado privado", href: "/auditoria" },
   { type: "IA", title: "Ferramentas de produtividade", detail: "Disponível em modo beta" },
   { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
   { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
@@ -236,7 +237,10 @@ export function NexusHome() {
                 <p>Uma experiência premium em preto e dourado, com serviços, diferenciais e preparação de agendamento em uma página responsiva.</p>
                 <div><span>Design premium</span><span>Responsivo</span><span>Agendamento</span></div>
                 <a className="primary-button" href="/barbearia-wayne">Acessar Barbearia Wayne <span>↗</span></a>
-                <a className="sites-commercial-link" href="/servicos">Quero um site para meu negócio <span>→</span></a>
+                <div className="sites-commercial-actions">
+                  <a className="sites-commercial-link" href="/auditoria">Auditar meu site atual <span>→</span></a>
+                  <a className="sites-commercial-link" href="/servicos">Quero um site novo <span>→</span></a>
+                </div>
               </div>
             </article>
           </section>

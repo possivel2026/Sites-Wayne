@@ -39,7 +39,9 @@ export default function SitesPage() {
           <small>PORTFÓLIO EM EXPANSÃO</small>
           <h2>O próximo site pode nascer aqui.</h2>
           <p>Novos projetos serão publicados somente quando estiverem funcionais e prontos para visitantes reais.</p>
-          <Link href="/">Voltar ao Nexus <b>→</b></Link>
+          <Link href="/auditoria">Auditar meu site atual <b>→</b></Link>
+          <br />
+          <Link href="/servicos">Conhecer os pacotes <b>→</b></Link>
         </aside>
       </section>
     </ModuleShell>
