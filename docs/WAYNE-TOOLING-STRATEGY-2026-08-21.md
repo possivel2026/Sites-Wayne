@@ -64,6 +64,25 @@ As fontes foram verificadas nos repositórios oficiais em 2026-08-21:
 - [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers): índice de descoberta. Nenhum servidor MCP é instalado sem revisão de permissões, origem e tratamento de dados.
 - [n8n-io/n8n](https://github.com/n8n-io/n8n): candidato a orquestração com aprovações humanas. É source-available/fair-code, não simplesmente uma dependência MIT.
 
+## Referências 11 a 14 — design, agentes e games
+
+As quatro referências adicionais foram verificadas em 2026-08-21 e receberam papéis diferentes:
+
+- [nexu-io/open-design](https://github.com/nexu-io/open-design): projeto Apache 2.0, local-first, com design systems e integração a agentes. Wayne adotou agora o conceito de contrato visual por meio do `DESIGN.md`. O aplicativo completo fica no laboratório: exige Node 24 ou Docker, daemon protegido e modelos locais/BYOK ou serviço comercial; não é dependência do site em produção.
+- [Shubhamsaboo/awesome-llm-apps](https://github.com/Shubhamsaboo/awesome-llm-apps): catálogo Apache 2.0 com agentes, skills e exemplos de RAG. Serve para descobrir padrões; cada pasta possui dependências, provedores e riscos próprios. Nada será clonado, executado ou vendido sem auditoria individual de código, licença, dados e custo.
+- [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands): painel de agentes em beta, licença MIT. O próprio quickstart alerta que a execução sem sandbox concede acesso total ao sistema de arquivos. Por isso, um teste futuro exige contêiner/VM isolada, diretório mínimo, segredos temporários e proibição de acesso a produção, pagamentos ou dados pessoais.
+- A árvore de habilidades de jogos virou a trilha pública `/aprender/game-dev`: fundamentos, matemática, Unreal/Blueprints, Blender, gameplay, áudio, multiplayer adiado até necessidade, testes, portfólio e publicação consciente. O progresso fica no dispositivo e não cria certificado fictício.
+
+### Ordem do Wayne Game Lab
+
+1. Blueprints e lógica antes de C++ avançado.
+2. Greybox antes de arte final.
+3. Jogo solo estável antes de multiplayer.
+4. Build pequena antes de loja.
+5. Um produto demonstrável por ciclo: asset pack, protótipo para cliente ou mini-jogo.
+
+Steam, Google Play e App Store exigem revisão de conta, taxas, classificação, privacidade e suporte. Nenhuma publicação paga ou conta comercial é criada automaticamente; para menor de idade, o responsável participa das etapas contratuais e financeiras.
+
 ## Regra de entrada de tecnologia
 
 Uma ferramenta nova só entra se passar por todos os gates:

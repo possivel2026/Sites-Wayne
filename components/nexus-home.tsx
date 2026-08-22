@@ -28,6 +28,7 @@ const plannedTopics = [
 const searchData = [
   { type: "Site", title: "Contratar Sites Wayne", detail: "Pacotes comerciais e diagnóstico inicial", href: "/servicos" },
   { type: "Site", title: "Auditoria gratuita de site", detail: "Dez critérios e resultado privado", href: "/auditoria" },
+  { type: "Curso", title: "Wayne Game Lab", detail: "Doze missões do protótipo ao produto", href: "/aprender/game-dev" },
   { type: "IA", title: "Ferramentas de produtividade", detail: "Disponível em modo beta" },
   { type: "Curso", title: "Área de aprendizagem", detail: "Catálogo em preparação" },
   { type: "Comunidade", title: "Comunidades temáticas", detail: "Inscrições em breve" },
@@ -216,7 +217,7 @@ export function NexusHome() {
               {[
                 ["◎", "Comunidades", "Encontre sua turma", "Inscrições em breve", "purple", "/comunidades"],
                 ["▣", "Marketplace", "Compre e venda fácil", "Vendedores em breve", "blue", "/marketplace"],
-                ["▤", "Aprender", "Cursos que dão resultado", "Catálogo em preparação", "cyan", "/aprender"],
+                ["▤", "Aprender", "Wayne Game Lab", "Primeira trilha publicada", "cyan", "/aprender/game-dev"],
                 ["♢", "Jogos", "Desafie e conquiste", "Ranking após o lançamento", "pink", "/jogos"],
               ].map((item) => <article id={item[1].toLocaleLowerCase("pt-BR")} key={item[1]}><span className={`eco-icon ${item[4]}`}>{item[0]}</span><p><strong>{item[1]}</strong><small>{item[2]}</small></p><em>{item[3]}</em><button aria-label={`Abrir ${item[1]}`} onClick={() => { window.location.href = item[5]; }}>→</button></article>)}
             </div>
