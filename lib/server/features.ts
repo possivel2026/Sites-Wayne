@@ -31,6 +31,16 @@ function starkiaStatus(): FeatureStatus {
   return { enabled: base.enabled, ready: base.enabled && strongSecret && base.missing.length === 0, missing };
 }
 
+function authStatus(): FeatureStatus {
+  const isEnabled = enabled("AUTH_ENABLED");
+  const missing: string[] = [];
+  if (!present("NEXT_PUBLIC_SUPABASE_URL")) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!present("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") && !present("NEXT_PUBLIC_SUPABASE_ANON_KEY")) {
+    missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+  return { enabled: isEnabled, ready: isEnabled && missing.length === 0, missing };
+}
+
 function present(name: string) {
   return Boolean(process.env[name]?.trim());
 }
@@ -46,7 +56,7 @@ export function getFeatureStatus(name: FeatureName): FeatureStatus {
     case "watch":
       return watchStatus();
     case "auth":
-      return status("AUTH_ENABLED", ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]);
+      return authStatus();
     case "marketplace":
       return status("MARKETPLACE_ENABLED", [
         "NEXT_PUBLIC_SUPABASE_URL",

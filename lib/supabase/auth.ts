@@ -1,10 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { fetchSafeGet, fetchWithTimeout } from "@/lib/server/http";
-
-const ACCESS_COOKIE = "nexus_access_token";
-const REFRESH_COOKIE = "nexus_refresh_token";
+import { ACCESS_COOKIE, REFRESH_COOKIE, sessionCookieOptions } from "@/lib/auth-session";
+import { fetchSafeGet, fetchWithTimeout, HttpTimeoutError } from "@/lib/server/http";
 
 export type SupabaseUser = {
   id: string;
@@ -22,9 +20,21 @@ export type SupabaseSession = {
 
 type AuthError = { error?: string; error_description?: string; msg?: string; message?: string; error_code?: string };
 
+export class SupabaseAuthResponseError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+  }
+}
+
+export function isSupabaseAuthUnavailable(error: unknown) {
+  if (error instanceof HttpTimeoutError) return true;
+  if (error instanceof SupabaseAuthResponseError) return error.status === 408 || error.status === 429 || error.status >= 500;
+  return true;
+}
+
 function config() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) throw new Error("supabase_auth_not_configured");
   return { url, key };
 }
@@ -45,7 +55,7 @@ async function authRequest<T>(path: string, init: RequestInit = {}, bearer?: str
     ? await fetchSafeGet(`${url}/auth/v1${path}`, requestInit)
     : await fetchWithTimeout(`${url}/auth/v1${path}`, requestInit);
   const body = await response.json().catch(() => ({})) as T & AuthError;
-  if (!response.ok) throw new Error(body.error_description || body.msg || body.message || body.error || `supabase_auth_${response.status}`);
+  if (!response.ok) throw new SupabaseAuthResponseError(response.status, body.error_description || body.msg || body.message || body.error || `supabase_auth_${response.status}`);
   return body;
 }
 
@@ -81,7 +91,12 @@ export async function refreshSupabaseSession(refreshToken: string) {
 }
 
 export async function revokeSupabaseSession(accessToken: string) {
-  return authRequest<Record<string, never>>("/logout", { method: "POST", body: "{}" }, accessToken).catch(() => undefined);
+  try {
+    await authRequest<Record<string, never>>("/logout", { method: "POST", body: "{}" }, accessToken);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function readSessionTokens() {
@@ -97,15 +112,14 @@ export async function getCurrentUser() {
 }
 
 export function setSessionCookies(response: NextResponse, session: Pick<SupabaseSession, "access_token" | "refresh_token" | "expires_in">) {
-  const base = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/" };
-  response.cookies.set(ACCESS_COOKIE, session.access_token, { ...base, maxAge: Math.max(60, session.expires_in || 3_600) });
-  response.cookies.set(REFRESH_COOKIE, session.refresh_token, { ...base, maxAge: 60 * 60 * 24 * 30 });
+  const accessMaxAge = Math.min(3_600, Math.max(60, session.expires_in || 3_600));
+  response.cookies.set(ACCESS_COOKIE, session.access_token, sessionCookieOptions(accessMaxAge));
+  response.cookies.set(REFRESH_COOKIE, session.refresh_token, sessionCookieOptions(60 * 60 * 24 * 30));
 }
 
 export function clearSessionCookies(response: NextResponse) {
-  const base = { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: 0 };
-  response.cookies.set(ACCESS_COOKIE, "", base);
-  response.cookies.set(REFRESH_COOKIE, "", base);
+  response.cookies.set(ACCESS_COOKIE, "", sessionCookieOptions(0));
+  response.cookies.set(REFRESH_COOKIE, "", sessionCookieOptions(0));
 }
 
 export function getOAuthProviders() {

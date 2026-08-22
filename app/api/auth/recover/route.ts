@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { applicationOrigin } from "@/lib/app-origin";
 import { getFeatureStatus } from "@/lib/server/features";
 import { apiError, bodyWithinLimit, clientIp, isSameOrigin, requestId } from "@/lib/server/http";
+import { log } from "@/lib/server/logger";
 import { rateLimit } from "@/lib/server/rate-limit";
-import { sendRecoveryEmail } from "@/lib/supabase/auth";
+import { isSupabaseAuthUnavailable, sendRecoveryEmail } from "@/lib/supabase/auth";
 
 export async function POST(request: NextRequest) {
   const id = requestId(request);
@@ -12,7 +14,13 @@ export async function POST(request: NextRequest) {
   if (!usage.allowed) return apiError("Aguarde antes de solicitar outro e-mail.", 429, id, "rate_limited");
   const body = await request.json().catch(() => ({})) as { email?: unknown };
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  if (/^\S+@\S+\.\S+$/.test(email)) await sendRecoveryEmail(email, `${request.nextUrl.origin}/redefinir-senha`).catch(() => undefined);
+  if (/^\S+@\S+\.\S+$/.test(email)) {
+    try {
+      await sendRecoveryEmail(email, `${applicationOrigin(request.nextUrl.origin)}/redefinir-senha`);
+    } catch (error) {
+      log("warn", "auth", "recovery_delivery_failed", { requestId: id });
+      if (isSupabaseAuthUnavailable(error)) return apiError("O serviço de recuperação está temporariamente indisponível. Tente novamente.", 503, id, "auth_upstream_unavailable");
+    }
+  }
   return NextResponse.json({ ok: true, message: "Se a conta existir, enviaremos as instruções por e-mail.", requestId: id });
 }
-

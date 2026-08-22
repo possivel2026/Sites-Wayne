@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFeatureStatus } from "@/lib/server/features";
 import { apiError, bodyWithinLimit, clientIp, isSameOrigin, requestId } from "@/lib/server/http";
+import { log } from "@/lib/server/logger";
 import { rateLimit } from "@/lib/server/rate-limit";
-import { setSessionCookies, signInWithPassword } from "@/lib/supabase/auth";
+import { isSupabaseAuthUnavailable, setSessionCookies, signInWithPassword } from "@/lib/supabase/auth";
 
 export async function POST(request: NextRequest) {
   const id = requestId(request);
@@ -20,8 +21,12 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ user: session.user, requestId: id }, { headers: { "cache-control": "no-store" } });
     setSessionCookies(response, session);
     return response;
-  } catch {
+  } catch (error) {
+    if (isSupabaseAuthUnavailable(error)) {
+      log("error", "auth", "login_upstream_unavailable", { requestId: id });
+      return apiError("O serviço de login está temporariamente indisponível. Tente novamente.", 503, id, "auth_upstream_unavailable");
+    }
+    log("warn", "auth", "login_failed", { requestId: id });
     return apiError("E-mail ou senha inválidos.", 401, id, "invalid_credentials");
   }
 }
-
