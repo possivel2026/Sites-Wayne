@@ -10,9 +10,9 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: `${siteConfig.name} — ${siteConfig.slogan}`,
   description: siteConfig.description,
+  applicationName: siteConfig.name,
   keywords: ["Brasil", "inteligência artificial", "comunidades", "vídeos", "marketplace", "educação"],
   openGraph: { title: siteConfig.name, description: siteConfig.description, type: "website", locale: "pt_BR" },
-  other: { "codex-preview": "development" },
   icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
 };
 

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listPublishedWayneSites } from "@/lib/supabase-admin";
 
-const routes = ["", "/servicos", "/criar-site", "/explorar", "/videos", "/ia", "/automacoes", "/comunidades", "/marketplace", "/sites", "/barbearia-wayne", "/aprender", "/jogos", "/planos", "/termos", "/privacidade"];
+const routes = ["", "/servicos", "/auditoria", "/criar-site", "/explorar", "/videos", "/ia", "/automacoes", "/comunidades", "/marketplace", "/sites", "/barbearia-wayne", "/aprender", "/jogos", "/planos", "/termos", "/privacidade"];
 
 export const revalidate = 3600;
 
